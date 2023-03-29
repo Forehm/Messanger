@@ -15,6 +15,7 @@ struct User
 	string login;
 	string password;
 	string profile_name;
+	set<int> conversation_with;
 };
 
 
