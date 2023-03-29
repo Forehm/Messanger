@@ -14,6 +14,7 @@ struct User
 	int id;
 	string login;
 	string password;
+	string profile_name;
 };
 
 
