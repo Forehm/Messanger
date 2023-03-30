@@ -11,10 +11,10 @@ using namespace std;
 
 struct User
 {
-	int id;
-	string login;
-	string password;
-	string profile_name;
+	int id = -1;
+	string login = "";
+	string password = "";
+	string profile_name = "";
 	set<int> conversation_with;
 };
 
