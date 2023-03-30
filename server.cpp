@@ -40,8 +40,10 @@ public:
 			cin >> password;
 			flag = is_password_appropriate(password);
 		}
+		string profile_name;
+		cin >> profile_name;
 		
-		AddUser(login, password);
+		AddUser(login, password, profile_name);
 	}
 
 	
@@ -53,9 +55,9 @@ private:
 	list<User> all_users_;
 	map<int, list<string>> messages_history_;
 
-	void AddUser(const string& login, const string& password)
+	void AddUser(const string& login, const string& password, const string& profile_name)
 	{
-		all_users_.push_back({ ++id, login, password });
+		all_users_.push_back({ ++id, login, password, profile_name});
 	}
 
 	bool is_password_appropriate(const string& password) const
