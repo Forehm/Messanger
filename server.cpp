@@ -10,6 +10,9 @@
 using namespace std;
 
 void TestServer()
+{
+	////to do
+}
 
 enum class Action
 {
