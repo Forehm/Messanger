@@ -9,7 +9,7 @@
 
 using namespace std;
 
-
+void TestServer()
 
 enum class Action
 {
