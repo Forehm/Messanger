@@ -10,6 +10,16 @@
 using namespace std;
 
 
+
+enum class Action
+{
+	SIGN_UP,
+	LOG_IN,
+	SEND_MSG,
+	DELETE_MSG_HISTORY
+};
+
+
 struct User
 {
 	int id = -1;
