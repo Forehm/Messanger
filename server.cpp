@@ -6,6 +6,7 @@
 #include <map>
 #include <deque>
 #include <set>
+#include "Tests.h"
 
 using namespace std;
 
