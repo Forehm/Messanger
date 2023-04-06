@@ -2,6 +2,8 @@
 #include <iostream>
 #include <string>
 
+using namespace std;
+
 template<typename Function>
 void TestingFunction(Function func, const string& func_name, const int& line)
 {
