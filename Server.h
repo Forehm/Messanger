@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <string>
 #include <WinSock2.h>
@@ -10,10 +11,7 @@
 
 using namespace std;
 
-void TestServer()
-{
-	////to do
-}
+
 
 enum class Action
 {
@@ -65,7 +63,7 @@ public:
 
 
 
-private:
+	///private:
 	static int id;
 	deque<User> all_users_;
 	map<pair<int, int>, deque<string>> messages_storage_;
@@ -100,17 +98,3 @@ private:
 };
 
 int Server::id = 0;
-
-
-int main()
-{
-	Server server;
-
-	server.AddUser("Forehm", "ds829265", "Egor");
-	server.AddUser("Oleg_baph", "fd122123", "Oleg");
-	User e{ 1, "Forehm", "ds829265", "Egor" };
-	User o{ 2, "Oleg_baph", "fd122123", "Oleg" };
-	server.AddMessage(e, o, "Hello, how are you?");
-	server.AddMessage(o, e, "Pretty fine:) How are you my brother?");
-
-}
