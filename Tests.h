@@ -9,7 +9,7 @@ void TestStartingFunction(Function func, const string& func_name, const int& lin
 {
 	func();
 	cerr << func_name << '(' << line << ')' << " OK" << endl;
-	
+
 }
 
 template<typename T, typename T2>
@@ -31,15 +31,29 @@ void TestAddUser()
 {
 	Server server;
 	server.AddUser("ctvh", "wsedrftgyhuji", "rtyy");
-
 	ASSERT_EQUAL(server.all_users_.size(), 1);
+	ASSERT_EQUAL(server.all_users_[0].id, 1);
+
 }
 
+void TestAddingMessagesToMessageshistoryByID()
+{
+	Server server;
+	User a{ -1, "vb", "vygbkjaxs", "cvgbhn" };
+	User b{ -1, "vbdsc", "v345jaxs", "cbnm,hn" };
+	server.AddUser(a.login, a.password, a.profile_name);
+	server.AddUser(b.login, b.password, b.profile_name);
 
+	server.AddMessage(a, b, "Hello");
+	server.AddMessage(b, a, "How are you?");
+
+	ASSERT_EQUAL(server.messages_storage_.at({ a.id, b.id }).size(), 2);
+}
 
 
 
 void TestServer()
 {
 	RUN_TEST(TestAddUser);
+	RUN_TEST(TestAddingMessagesToMessageshistoryByID);
 }

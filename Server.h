@@ -63,7 +63,7 @@ public:
 
 
 
-	///private:
+private:
 	static int id;
 	deque<User> all_users_;
 	map<pair<int, int>, deque<string>> messages_storage_;
@@ -94,6 +94,10 @@ public:
 		messages_storage_[{first_id, second_id}].push_back(message);
 
 	}
+
+
+	friend void TestAddUser();
+	friend void TestAddingMessagesToMessageshistoryByID();
 
 };
 
