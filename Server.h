@@ -75,6 +75,11 @@ private:
 		all_logins_.insert(login);
 	}
 
+	void EraseRemoveUserFromBase()
+	{
+		//////soon
+	}
+	
 	bool is_password_appropriate(const string& password) const
 	{
 		return password.size() >= 8 ? true : false;
