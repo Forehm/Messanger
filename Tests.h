@@ -50,10 +50,22 @@ void TestAddingMessagesToMessageshistoryByID()
 	ASSERT_EQUAL(server.messages_storage_.at({ a.id, b.id }).size(), 2);
 }
 
+void TestSigningIn()
+{
+	Server server;
+	User a{ -1, "vb", "vygbkjaxs", "cvgbhn" };
+	server.AddUser(a.login, a.password, a.profile_name);
+
+	User& user_a = server.all_users_[0];
+	User& ref_b = server.SignIn("vb", "vygbkjaxs");
+
+	ASSERT_EQUAL(user_a, ref_b);
+}
 
 
 void TestServer()
 {
 	RUN_TEST(TestAddUser);
 	RUN_TEST(TestAddingMessagesToMessageshistoryByID);
+	RUN_TEST(TestSigningIn);
 }
