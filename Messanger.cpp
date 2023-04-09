@@ -34,18 +34,48 @@ int main()
 		cerr << "Error::" << WSAGetLastError() << endl;
 	}
 
-	SOCKET my_socket = socket(AF_INET, SOCK_STREAM, 0);
+	SOCKET server_socket = socket(AF_INET, SOCK_STREAM, 0);
 
-	if (my_socket == INVALID_SOCKET)
+	if (server_socket == INVALID_SOCKET)
 	{
 		cerr << "Error::" << WSAGetLastError() << endl;
-		closesocket(my_socket);
+		closesocket(server_socket);
 		WSACleanup();
 		return 1;
 	}
 	else
 	{
 		cerr << "Server socket initialization is OK" << endl;
+	}
+
+	in_addr adress;
+	last_error = inet_pton(AF_INET, "192.168.1.198", &adress);
+
+	if (last_error <= 0)
+	{
+		cerr << "Error in IP translation to special numeric format" << endl;
+		return 1;
+	}
+
+	sockaddr_in server_info;
+	ZeroMemory(&server_info, sizeof(server_info));
+
+	server_info.sin_family = AF_INET;
+	server_info.sin_addr = adress;
+	server_info.sin_port = htons(1234);
+
+	last_error = bind(server_socket, (sockaddr*)&server_info, sizeof(server_info));
+
+	if (last_error != 0)
+	{
+		cerr << "Error Socket binding to server::" << WSAGetLastError() << endl;
+		closesocket(server_socket);
+		WSACleanup();
+		return 1;
+	}
+	else
+	{
+		cerr << "Binding socket to Server info is OK" << endl;
 	}
 
 }
