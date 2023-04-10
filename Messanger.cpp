@@ -78,4 +78,13 @@ int main()
 		cerr << "Binding socket to Server info is OK" << endl;
 	}
 
+	last_error = listen(server_socket, SOMAXCONN);
+
+	if (last_error != 0)
+	{
+		cerr << "Errors with listening to socket::" << WSAGetLastError() << endl;
+		closesocket(server_socket);
+		WSACleanup();
+		return -1;
+	}
 }
