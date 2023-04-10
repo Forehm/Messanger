@@ -49,7 +49,7 @@ int main()
 	}
 
 	in_addr adress;
-	last_error = inet_pton(AF_INET, "192.168.1.198", &adress);
+	last_error = inet_pton(AF_INET, "***.***.**.***", &adress);
 
 	if (last_error <= 0)
 	{
