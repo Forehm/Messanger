@@ -87,4 +87,26 @@ int main()
 		WSACleanup();
 		return -1;
 	}
+
+	sockaddr_in client_info;
+
+	ZeroMemory(&client_info, sizeof(client_info));
+
+	int client_info_size = sizeof(client_info);
+
+	SOCKET client_connection = accept(server_socket, (sockaddr*)&client_info, &client_info_size);
+
+	if (client_connection == INVALID_SOCKET)
+	{
+		cerr << "Client detected, but can't connect to a client. Error # " << WSAGetLastError() << endl;
+		closesocket(server_socket);
+		closesocket(client_connection);
+		WSACleanup();
+		return 1;
+	}
+	else
+	{
+		cerr << "Connection to a client established successfully" << endl;
+	}
+
 }
