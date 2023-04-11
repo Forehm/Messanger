@@ -109,4 +109,34 @@ int main()
 		cerr << "Connection to a client established successfully" << endl;
 	}
 
+	vector<char> server_buffer(BUFF_SIZE), client_buffer(BUFF_SIZE);
+
+	short packet_size = 0;
+
+	while (true)
+	{
+		packet_size = recv(client_connection, server_buffer.data(), server_buffer.size(), 0);
+		cout << "Clients message: " << server_buffer.data() << endl;
+
+		cout << "Host message: ";
+		fgets(client_buffer.data(), client_buffer.size(), stdin);
+
+		if (client_buffer[0] == 'x' && client_buffer[1] == 'x' && client_buffer[2] == 'x') {
+			shutdown(client_connection, SD_BOTH);
+			closesocket(server_socket);
+			closesocket(client_connection);
+			WSACleanup();
+			return 0;
+		}
+
+		packet_size = send(client_connection, client_buffer.data(), client_buffer.size(), 0);
+
+		if (packet_size == SOCKET_ERROR) {
+			cout << "Can't send message to Client. Error # " << WSAGetLastError() << endl;
+			closesocket(server_socket);
+			closesocket(client_connection);
+			WSACleanup();
+			return 1;
+		}
+	}
 }
