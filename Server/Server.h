@@ -46,7 +46,10 @@ public:
 
 	User& SignIn(const string& login, const string& password);
 
+	void DeleteMessageHistory(const User& user1, const User& user2)
+	{
 
+	}
 private:
 
 	static int id;
@@ -60,7 +63,7 @@ private:
 
 	void AddMessage(const User& sender, const User& receiver, const string& message);
 
-
+	pair<int, int> GetIdsFromUsersinRightOrder(const User& user1, const User& user2) const;
 
 
 
@@ -119,15 +122,18 @@ bool Server::is_password_appropriate(const string& password) const
 
 void Server::AddMessage(const User& sender, const User& receiver, const string& message)
 {
+	messages_storage_[GetIdsFromUsersinRightOrder(sender, receiver)].push_back(message);
+}
+
+pair<int, int> Server::GetIdsFromUsersinRightOrder(const User& user1, const User& user2) const
+{
 	int first_id = -1, second_id = -1;
-	first_id = sender.id;
-	second_id = receiver.id;
+	first_id = user1.id;
+	second_id = user2.id;
 
 	if (first_id > second_id)
 	{
 		swap(first_id, second_id);
 	}
-
-	messages_storage_[{first_id, second_id}].push_back(message);
-
+	return { first_id, second_id };
 }
