@@ -46,10 +46,8 @@ public:
 
 	User& SignIn(const string& login, const string& password);
 
-	void DeleteMessageHistory(const User& user1, const User& user2)
-	{
+	void DeleteMessageHistory(const User& user1, const User& user2);
 
-	}
 private:
 
 	static int id;
@@ -136,4 +134,11 @@ pair<int, int> Server::GetIdsFromUsersinRightOrder(const User& user1, const User
 		swap(first_id, second_id);
 	}
 	return { first_id, second_id };
+}
+
+void Server::DeleteMessageHistory(const User& user1, const User& user2)
+{
+	pair<int, int> pair_of_ids = GetIdsFromUsersinRightOrder(user1, user2);
+	map<pair<int, int>, deque<string>>::iterator messages_to_erase = messages_storage_.find(pair_of_ids);
+	messages_storage_.erase(messages_to_erase);
 }
