@@ -62,10 +62,28 @@ void TestSigningIn()
 	ASSERT_EQUAL(user_a, ref_b);
 }
 
+void TestErasingMessagesHistory()
+{
+	Server server;
+	User a{ 1, "vb", "vygbkjaxs", "cvgbhn" };
+	User b{ 2, "vbdsc", "v345jaxs", "cbnm,hn" };
+
+	server.AddUser(a.login, a.password, a.profile_name);
+	server.AddUser(b.login, b.password, b.profile_name);
+
+	server.AddMessage(a, b, "Hello");
+	server.AddMessage(b, a, "How are you?");
+
+	ASSERT_EQUAL(server.messages_storage_.at({ a.id, b.id }).size(), 2);
+	server.DeleteMessageHistory(a, b);
+	ASSERT_EQUAL(server.messages_storage_.count({ a.id, b.id }), 0);
+}
+
 
 void TestServer()
 {
 	RUN_TEST(TestAddUser);
 	RUN_TEST(TestAddingMessagesToMessageshistoryByID);
 	RUN_TEST(TestSigningIn);
+	RUN_TEST(TestErasingMessagesHistory);
 }
