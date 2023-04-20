@@ -79,6 +79,16 @@ void TestErasingMessagesHistory()
 	ASSERT_EQUAL(server.messages_storage_.count({ a.id, b.id }), 0);
 }
 
+void TestOfGettingIdsOfUsersInTheRightOrder()
+{
+	Server server;
+	User a{ 1, "vb", "vygbkjaxs", "cvgbhn" };
+	User b{ 2, "vbdsc", "v345jaxs", "cbnm,hn" };
+
+	pair<int, int> needed_unswer{ 1, 2 };
+	pair<int, int> real_unswer = server.GetIdsFromUsersinRightOrder(b, a);
+	ASSERT_EQUAL(needed_unswer, real_unswer);
+}
 
 void TestServer()
 {
@@ -86,4 +96,5 @@ void TestServer()
 	RUN_TEST(TestAddingMessagesToMessageshistoryByID);
 	RUN_TEST(TestSigningIn);
 	RUN_TEST(TestErasingMessagesHistory);
+	RUN_TEST(TestOfGettingIdsOfUsersInTheRightOrder);
 }
