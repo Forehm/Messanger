@@ -21,6 +21,10 @@ enum class Action
 	DELETE_MSG_HISTORY
 };
 
+
+
+
+
 struct User
 {
 	int id = -1;
@@ -36,9 +40,7 @@ struct User
 	}
 };
 
-
-
-class Server
+class UsersManager
 {
 public:
 
@@ -46,35 +48,49 @@ public:
 
 	User& SignIn(const string& login, const string& password);
 
-	void DeleteMessageHistory(const User& user1, const User& user2);
-
 private:
-
 	static int id;
 	deque<User> all_users_;
-	map<pair<int, int>, deque<string>> messages_storage_;
 	set<string>all_logins_;
 
 	void AddUser(const string& login, const string& password, const string& profile_name);
 
-	bool is_password_appropriate(const string& password) const;
-
-	void AddMessage(const User& sender, const User& receiver, const string& message);
-
-	pair<int, int> GetIdsFromUsersinRightOrder(const User& user1, const User& user2) const;
-
-
-
 	friend void TestAddUser();
-	friend void TestAddingMessagesToMessageshistoryByID();
 	friend void TestSigningIn();
 };
 
-int Server::id = 0;
+int UsersManager::id = 0;
 
+class MessagesManager
+{
+public:
 
+	void DeleteMessageHistory(const User& user1, const User& user2);
 
-void Server::SignUp()
+	void AddMessage(const User& sender, const User& receiver, const string& message);
+
+private:
+
+	map<pair<int, int>, deque<string>> messages_storage_;
+
+	friend void TestAddingMessagesToMessageshistoryByID();
+	friend void TestErasingMessagesHistory();
+};
+
+class MessangerToolsManager
+{
+public:
+
+	bool is_password_appropriate(const string& password) const;
+
+	pair<int, int> GetIdsFromUsersinRightOrder(const User& user1, const User& user2) const;
+
+private:
+
+	friend void TestOfGettingIdsOfUsersInTheRightOrder();
+};
+
+void UsersManager::SignUp()
 {
 	cout << "Print your login" << endl;
 	string login;
@@ -96,7 +112,7 @@ void Server::SignUp()
 	AddUser(login, password, profile_name);
 }
 
-User& Server::SignIn(const string& login, const string& password)
+User& UsersManager::SignIn(const string& login, const string& password)
 {
 	for (User& user : all_users_)
 	{
@@ -107,23 +123,23 @@ User& Server::SignIn(const string& login, const string& password)
 	}
 }
 
-void Server::AddUser(const string& login, const string& password, const string& profile_name)
+void UsersManager::AddUser(const string& login, const string& password, const string& profile_name)
 {
 	all_users_.push_back({ ++id, login, password, profile_name });
 	all_logins_.insert(login);
 }
 
-bool Server::is_password_appropriate(const string& password) const
+bool MessangerToolsManager::is_password_appropriate(const string& password) const
 {
 	return password.size() >= 8 ? true : false;
 }
 
-void Server::AddMessage(const User& sender, const User& receiver, const string& message)
+void MessagesManager::AddMessage(const User& sender, const User& receiver, const string& message)
 {
 	messages_storage_[GetIdsFromUsersinRightOrder(sender, receiver)].push_back(message);
 }
 
-pair<int, int> Server::GetIdsFromUsersinRightOrder(const User& user1, const User& user2) const
+pair<int, int> MessangerToolsManager::GetIdsFromUsersinRightOrder(const User& user1, const User& user2) const
 {
 	int first_id = -1, second_id = -1;
 	first_id = user1.id;
@@ -136,7 +152,7 @@ pair<int, int> Server::GetIdsFromUsersinRightOrder(const User& user1, const User
 	return { first_id, second_id };
 }
 
-void Server::DeleteMessageHistory(const User& user1, const User& user2)
+void MessagesManager::DeleteMessageHistory(const User& user1, const User& user2)
 {
 	pair<int, int> pair_of_ids = GetIdsFromUsersinRightOrder(user1, user2);
 	map<pair<int, int>, deque<string>>::iterator messages_to_erase = messages_storage_.find(pair_of_ids);
