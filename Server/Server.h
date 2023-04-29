@@ -83,12 +83,18 @@ public:
 
 	bool is_password_appropriate(const string& password) const;
 
-	pair<int, int> GetIdsFromUsersinRightOrder(const User& user1, const User& user2) const;
+	static pair<int, int> GetIdsFromUsersinRightOrder(const User& user1, const User& user2);
 
 private:
 
 	friend void TestOfGettingIdsOfUsersInTheRightOrder();
 };
+
+
+
+
+
+
 
 void UsersManager::SignUp()
 {
@@ -139,7 +145,7 @@ void MessagesManager::AddMessage(const User& sender, const User& receiver, const
 	messages_storage_[GetIdsFromUsersinRightOrder(sender, receiver)].push_back(message);
 }
 
-pair<int, int> MessangerToolsManager::GetIdsFromUsersinRightOrder(const User& user1, const User& user2) const
+pair<int, int> MessangerToolsManager::GetIdsFromUsersinRightOrder(const User& user1, const User& user2)
 {
 	int first_id = -1, second_id = -1;
 	first_id = user1.id;
@@ -154,7 +160,7 @@ pair<int, int> MessangerToolsManager::GetIdsFromUsersinRightOrder(const User& us
 
 void MessagesManager::DeleteMessageHistory(const User& user1, const User& user2)
 {
-	pair<int, int> pair_of_ids = GetIdsFromUsersinRightOrder(user1, user2);
+	pair<int, int> pair_of_ids = MessangerToolsManager::GetIdsFromUsersinRightOrder(user1, user2);
 	map<pair<int, int>, deque<string>>::iterator messages_to_erase = messages_storage_.find(pair_of_ids);
 	messages_storage_.erase(messages_to_erase);
 }
