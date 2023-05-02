@@ -14,10 +14,16 @@
 
 using namespace std;
 
+const int BUFF_SIZE = 256;
+
+
+
+
 
 int main()
 {
 	TestServer();
+
 
 	WSADATA wsData;
 	WORD dll_version = MAKEWORD(2, 2);
@@ -49,7 +55,7 @@ int main()
 	}
 
 	in_addr adress;
-	last_error = inet_pton(AF_INET, "***.***.**.***", &adress);
+	last_error = inet_pton(AF_INET, "172.20.10.5", &adress);
 
 	if (last_error <= 0)
 	{
