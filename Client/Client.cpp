@@ -45,9 +45,9 @@ int main()
 
 	ZeroMemory(&server_info, sizeof(server_info));
 
-	in_addr adress;
-	last_error = inet_pton(AF_INET, "***.***.**.***", &adress);
-	if (last_error != 0)
+	in_addr adress{};
+	last_error = inet_pton(AF_INET, "192.168.50.121", &adress);
+	if (last_error <= 0)
 	{
 		cerr << "Convertion ipv4 adress failed, error::" << WSAGetLastError() << endl;
 		closesocket(client_socket);
@@ -77,4 +77,6 @@ int main()
 		cerr << "Connection is set up :)" << endl;
 	}
 
+
+	return 0;
 }
