@@ -54,8 +54,8 @@ int main()
 		cerr << "Server socket initialization is OK" << endl;
 	}
 
-	in_addr adress;
-	last_error = inet_pton(AF_INET, "172.20.10.5", &adress);
+	in_addr adress{};
+	last_error = inet_pton(AF_INET, "192.168.50.121", &adress);
 
 	if (last_error <= 0)
 	{
