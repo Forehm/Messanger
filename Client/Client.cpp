@@ -8,7 +8,9 @@
 
 using namespace std;
 
-
+const char SERVER_IP[] = "***.***.**.***";
+const short SERVER_PORT_NUM = 1234;
+const short BUFF_SIZE = 1024;
 
 int main()
 {
@@ -46,7 +48,7 @@ int main()
 	ZeroMemory(&server_info, sizeof(server_info));
 
 	in_addr adress{};
-	last_error = inet_pton(AF_INET, "192.168.50.121", &adress);
+	last_error = inet_pton(AF_INET, SERVER_IP, &adress);
 	if (last_error <= 0)
 	{
 		cerr << "Convertion ipv4 adress failed, error::" << WSAGetLastError() << endl;
@@ -61,7 +63,7 @@ int main()
 
 	server_info.sin_family = AF_INET;
 	server_info.sin_addr = adress;
-	server_info.sin_port = htons(1234);
+	server_info.sin_port = htons(SERVER_PORT_NUM);
 
 	last_error = connect(client_socket, (sockaddr*)&server_info, sizeof(server_info));
 
@@ -76,6 +78,9 @@ int main()
 	{
 		cerr << "Connection is set up :)" << endl;
 	}
+	vector <char> servBuff(BUFF_SIZE), clientBuff(BUFF_SIZE);
+	short packet_size = 0;
+
 
 
 	return 0;
