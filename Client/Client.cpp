@@ -81,19 +81,30 @@ int main()
 	vector <char> servBuff(BUFF_SIZE), clientBuff(BUFF_SIZE);
 	short int packet_size = 0;
 
-	while (true) {
+	while (true) 
+	{
 
 		cout << "Your (Client) message to Server: ";
 		fgets(clientBuff.data(), clientBuff.size(), stdin);
 
 		// Check whether client like to stop chatting 
-		if (clientBuff[0] == 'x' && clientBuff[1] == 'x' && clientBuff[2] == 'x') {
+		if (clientBuff[0] == 'x' && clientBuff[1] == 'x' && clientBuff[2] == 'x')
+		{
 			shutdown(client_socket, SD_BOTH);
 			closesocket(client_socket);
 			WSACleanup();
 			return 0;
 		}
 
+		if (packet_size == SOCKET_ERROR) 
+		{
+			cout << "Can't send message to Server. Error # " << WSAGetLastError() << endl;
+			closesocket(client_socket);
+			WSACleanup();
+			return 1;
+		}
+
+		packet_size = recv(client_socket, servBuff.data(), servBuff.size(), 0);
 
 	}
 
