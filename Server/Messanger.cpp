@@ -18,6 +18,11 @@ const int BUFF_SIZE = 256;
 
 
 
+const char SERVER_IP[] = "***.***.**.***";
+const int PORT_NUM = 1234;
+const short BUFF_SIZE = 1024;
+
+
 
 
 int main()
@@ -55,7 +60,7 @@ int main()
 	}
 
 	in_addr adress{};
-	last_error = inet_pton(AF_INET, "192.168.50.121", &adress);
+	last_error = inet_pton(AF_INET, SERVER_IP, &adress);
 
 	if (last_error <= 0)
 	{
@@ -68,7 +73,7 @@ int main()
 
 	server_info.sin_family = AF_INET;
 	server_info.sin_addr = adress;
-	server_info.sin_port = htons(1234);
+	server_info.sin_port = htons(PORT_NUM);
 
 	last_error = bind(server_socket, (sockaddr*)&server_info, sizeof(server_info));
 
