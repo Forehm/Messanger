@@ -13,15 +13,6 @@ using namespace std;
 
 
 
-enum class Action
-{
-	SIGN_UP,
-	LOG_IN,
-	SEND_MSG,
-	DELETE_MSG_HISTORY
-};
-
-
 vector<string> ParseQueryIntoWords(const string& query)
 {
 	vector<string> query_words;
