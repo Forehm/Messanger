@@ -9,7 +9,7 @@
 using namespace std;
 
 const char SERVER_IP[] = "***.***.**.***";
-const short SERVER_PORT_NUMBER = 1234;
+const short PORT_NUMBER = 1234;
 const short BUFF_SIZE = 1024;
 
 int main()
@@ -63,7 +63,7 @@ int main()
 
 	server_info.sin_family = AF_INET;
 	server_info.sin_addr = adress;
-	server_info.sin_port = htons(SERVER_PORT_NUMBER);
+	server_info.sin_port = htons(PORT_NUMBER);
 
 	last_error = connect(client_socket, (sockaddr*)&server_info, sizeof(server_info));
 
@@ -87,7 +87,6 @@ int main()
 		cout << "Your (Client) message to Server: ";
 		fgets(clientBuff.data(), clientBuff.size(), stdin);
 
-		// Check whether client like to stop chatting 
 		if (clientBuff[0] == 'x' && clientBuff[1] == 'x' && clientBuff[2] == 'x')
 		{
 			shutdown(client_socket, SD_BOTH);
@@ -98,7 +97,7 @@ int main()
 
 		if (packet_size == SOCKET_ERROR) 
 		{
-			cout << "Can't send message to Server. Error # " << WSAGetLastError() << endl;
+			cout << "Can't send message to Server. Error::" << WSAGetLastError() << endl;
 			closesocket(client_socket);
 			WSACleanup();
 			return 1;
@@ -107,7 +106,7 @@ int main()
 		packet_size = recv(client_socket, servBuff.data(), servBuff.size(), 0);
 
 		if (packet_size == SOCKET_ERROR) {
-			cout << "Can't receive message from Server. Error # " << WSAGetLastError() << endl;
+			cout << "Can't receive message from Server. Error::" << WSAGetLastError() << endl;
 			closesocket(client_socket);
 			WSACleanup();
 			return 1;
