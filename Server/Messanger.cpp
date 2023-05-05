@@ -19,7 +19,7 @@ const int BUFF_SIZE = 256;
 
 
 const char SERVER_IP[] = "***.***.**.***";
-const int PORT_NUM = 1234;
+const int PORT_NUMBER = 1234;
 const short BUFF_SIZE = 1024;
 
 
@@ -73,7 +73,7 @@ int main()
 
 	server_info.sin_family = AF_INET;
 	server_info.sin_addr = adress;
-	server_info.sin_port = htons(PORT_NUM);
+	server_info.sin_port = htons(PORT_NUMBER);
 
 	last_error = bind(server_socket, (sockaddr*)&server_info, sizeof(server_info));
 
