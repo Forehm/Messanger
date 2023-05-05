@@ -14,9 +14,6 @@
 
 using namespace std;
 
-const int BUFF_SIZE = 256;
-
-
 
 const char SERVER_IP[] = "***.***.**.***";
 const int PORT_NUMBER = 1234;
@@ -143,7 +140,7 @@ int main()
 		packet_size = send(client_connection, client_buffer.data(), client_buffer.size(), 0);
 
 		if (packet_size == SOCKET_ERROR) {
-			cout << "Can't send message to Client. Error # " << WSAGetLastError() << endl;
+			cout << "Can't send message to Client. Error:: " << WSAGetLastError() << endl;
 			closesocket(server_socket);
 			closesocket(client_connection);
 			WSACleanup();
