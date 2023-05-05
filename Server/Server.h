@@ -59,21 +59,7 @@ public:
 
 	void DeleteMessageHistory(const int user1_id, const int user2_id);
 
-	void CommitQueryWork(const vector<string>& query_words)
-	{
-		if (query_words[0] == "AddUser")
-		{
-			AddUser(query_words[1], query_words[2], query_words[3]);
-		}
-		if (query_words[0] == "SendMSG")
-		{
-			AddMessage(stoi(query_words[1]), stoi(query_words[2]), query_words[3]);
-		}
-		if (query_words[0] == "DelMSG")
-		{
-			DeleteMessageHistory(stoi(query_words[1]), stoi(query_words[2]));
-		}
-	}
+	void CommitQueryWork(const vector<string>& query_words);
 
 private:
 
@@ -171,4 +157,20 @@ void Server::DeleteMessageHistory(const int user1_id, const int user2_id)
 	pair<int, int> pair_of_ids = GetIdsFromUsersinRightOrder(user1_id, user2_id);
 	map<pair<int, int>, deque<string>>::iterator messages_to_erase = messages_storage_.find(pair_of_ids);
 	messages_storage_.erase(messages_to_erase);
+}
+
+void Server::CommitQueryWork(const vector<string>& query_words)
+{
+	if (query_words[0] == "AddUser")
+	{
+		AddUser(query_words[1], query_words[2], query_words[3]);
+	}
+	if (query_words[0] == "SendMSG")
+	{
+		AddMessage(stoi(query_words[1]), stoi(query_words[2]), query_words[3]);
+	}
+	if (query_words[0] == "DelMSG")
+	{
+		DeleteMessageHistory(stoi(query_words[1]), stoi(query_words[2]));
+	}
 }
