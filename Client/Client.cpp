@@ -9,7 +9,7 @@
 using namespace std;
 
 const char SERVER_IP[] = "***.***.**.***";
-const short SERVER_PORT_NUM = 1234;
+const short SERVER_PORT_NUMBER = 1234;
 const short BUFF_SIZE = 1024;
 
 int main()
@@ -63,7 +63,7 @@ int main()
 
 	server_info.sin_family = AF_INET;
 	server_info.sin_addr = adress;
-	server_info.sin_port = htons(SERVER_PORT_NUM);
+	server_info.sin_port = htons(SERVER_PORT_NUMBER);
 
 	last_error = connect(client_socket, (sockaddr*)&server_info, sizeof(server_info));
 
