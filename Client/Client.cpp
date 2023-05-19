@@ -1,122 +1,88 @@
 #pragma comment(lib, "ws2_32.lib")
+#include <winsock2.h>
 #include <iostream>
 #include <string>
-#include <WinSock2.h>
-#include <WS2tcpip.h>
-#include <stdio.h>
-#include <vector>
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#pragma warning(disable: 4996)
 
-using namespace std;
+SOCKET Connection;
 
-const char SERVER_IP[] = "***.***.**.***";
-const short PORT_NUMBER = 1234;
-const short BUFF_SIZE = 1024;
+enum Packet {
+	P_ChatMessage,
+	P_Test
+};
 
-int main()
-{
-	WSAData WsData;
-	WORD dll_version = MAKEWORD(2, 2);
-
-	int last_error = WSAStartup(dll_version, &WsData);
-
-	if (last_error != 0)
+bool ProcessPacket(Packet packettype) {
+	switch (packettype) {
+	case P_ChatMessage:
 	{
-		cerr << "Error:: " << WSAGetLastError() << endl;
-		return 1;
+		int msg_size;
+		recv(Connection, (char*)&msg_size, sizeof(int), NULL);
+		char* msg = new char[msg_size + 1];
+		msg[msg_size] = '\0';
+		recv(Connection, msg, msg_size, NULL);
+		std::cout << msg << std::endl;
+		delete[] msg;
+		break;
 	}
-	else
-	{
-		cerr << "WinSock initialization is OK" << endl;
-	}
-
-	SOCKET client_socket = socket(AF_INET, SOCK_STREAM, 0);
-
-	if (client_socket == INVALID_SOCKET)
-	{
-		cerr << "Error with initializing the socket::" << WSAGetLastError() << endl;
-		closesocket(client_socket);
-		WSACleanup();
-		return 1;
-	}
-	else
-	{
-		cerr << "Socket initializing is OK" << endl;
+	case P_Test:
+		std::cout << "Test packet.\n";
+		break;
+	default:
+		std::cout << "Unrecognized packet: " << packettype << std::endl;
+		break;
 	}
 
-	sockaddr_in server_info;
+	return true;
+}
 
-	ZeroMemory(&server_info, sizeof(server_info));
+void ClientHandler() {
+	Packet packettype;
+	while (true) {
+		recv(Connection, (char*)&packettype, sizeof(Packet), NULL);
 
-	in_addr adress{};
-	last_error = inet_pton(AF_INET, SERVER_IP, &adress);
-	if (last_error <= 0)
-	{
-		cerr << "Convertion ipv4 adress failed, error::" << WSAGetLastError() << endl;
-		closesocket(client_socket);
-		WSACleanup();
-		return 1;
-	}
-	else
-	{
-		cerr << "Convertion ipv4 is OK" << endl;
-	}
-
-	server_info.sin_family = AF_INET;
-	server_info.sin_addr = adress;
-	server_info.sin_port = htons(PORT_NUMBER);
-
-	last_error = connect(client_socket, (sockaddr*)&server_info, sizeof(server_info));
-
-	if (last_error != 0)
-	{
-		cerr << "Connection to server failed, error::" << WSAGetLastError() << endl;
-		closesocket(client_socket);
-		WSACleanup();
-		return 1;
-	}
-	else
-	{
-		cerr << "Connection is set up :)" << endl;
-	}
-	vector <char> servBuff(BUFF_SIZE), clientBuff(BUFF_SIZE);
-	short int packet_size = 0;
-
-	while (true) 
-	{
-
-		cout << "Your (Client) message to Server: ";
-		fgets(clientBuff.data(), clientBuff.size(), stdin);
-
-		if (clientBuff[0] == 'x' && clientBuff[1] == 'x' && clientBuff[2] == 'x')
-		{
-			shutdown(client_socket, SD_BOTH);
-			closesocket(client_socket);
-			WSACleanup();
-			return 0;
+		if (!ProcessPacket(packettype)) {
+			break;
 		}
+	}
+	closesocket(Connection);
+}
 
-		if (packet_size == SOCKET_ERROR) 
-		{
-			cout << "Can't send message to Server. Error::" << WSAGetLastError() << endl;
-			closesocket(client_socket);
-			WSACleanup();
-			return 1;
-		}
-
-		packet_size = recv(client_socket, servBuff.data(), servBuff.size(), 0);
-
-		if (packet_size == SOCKET_ERROR) {
-			cout << "Can't receive message from Server. Error::" << WSAGetLastError() << endl;
-			closesocket(client_socket);
-			WSACleanup();
-			return 1;
-		}
-		else
-			cout << "Server message: " << servBuff.data() << endl;
+int main(int argc, char* argv[]) {
+	//WSAStartup
+	WSAData wsaData;
+	WORD DLLVersion = MAKEWORD(2, 1);
+	if (WSAStartup(DLLVersion, &wsaData) != 0) {
+		std::cout << "Error" << std::endl;
+		exit(1);
 	}
 
-	closesocket(client_socket);
-	WSACleanup();
+	SOCKADDR_IN addr;
+	int sizeofaddr = sizeof(addr);
+	addr.sin_addr.s_addr = inet_addr("192.168.1.198");
+	addr.sin_port = htons(1111);
+	addr.sin_family = AF_INET;
 
+	Connection = socket(AF_INET, SOCK_STREAM, NULL);
+	if (connect(Connection, (SOCKADDR*)&addr, sizeof(addr)) != 0) {
+		std::cout << "Error: failed connect to server.\n";
+		return 1;
+	}
+	std::cout << "Connected!\n";
+
+	CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)ClientHandler, NULL, NULL, NULL);
+
+	std::string msg1;
+	while (true) {
+		std::getline(std::cin, msg1);
+		int msg_size = msg1.size();
+		Packet packettype = P_ChatMessage;
+		send(Connection, (char*)&packettype, sizeof(Packet), NULL);
+		send(Connection, (char*)&msg_size, sizeof(int), NULL);
+		send(Connection, msg1.c_str(), msg_size, NULL);
+		Sleep(10);
+	}
+
+	system("pause");
 	return 0;
 }

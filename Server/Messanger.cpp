@@ -1,150 +1,120 @@
 ﻿#pragma comment(lib, "ws2_32.lib")
+#include <winsock2.h>
 #include <iostream>
-#include <string>
-#include <WinSock2.h>
-#include <WS2tcpip.h>
-#include <stdio.h>
-#include <algorithm>
 #include <vector>
-#include <map>
-#include <deque>
-#include <set>
-#include "Tests.h"
-#include "Server.h"
-
-using namespace std;
-
-
-const char SERVER_IP[] = "***.***.**.***";
-const int PORT_NUMBER = 1234;
-const short BUFF_SIZE = 1024;
+#include <string>
+#pragma warning(disable: 4996)
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 
 
 
+std::vector<SOCKET>Connections;
 
-int main()
-{
-	TestServer();
+int Counter = 0;
 
+enum Packet {
+	P_ChatMessage,
+	P_Test
+};
 
-	WSADATA wsData;
-	WORD dll_version = MAKEWORD(2, 2);
-
-	int last_error = WSAStartup(dll_version, &wsData);
-
-
-	if (last_error == 0)
+bool ProcessPacket(int index, Packet packet_type) {
+	switch (packet_type) {
+	case P_ChatMessage:
 	{
-		cerr << "WinSock initialization is OK" << endl;
-	}
-	else
-	{
-		cerr << "Error::" << WSAGetLastError() << endl;
-	}
+		int msg_size{};
 
-	SOCKET server_socket = socket(AF_INET, SOCK_STREAM, 0);
+		recv(Connections[index], (char*)&msg_size, sizeof(int), NULL);
 
-	if (server_socket == INVALID_SOCKET)
-	{
-		cerr << "Error::" << WSAGetLastError() << endl;
-		closesocket(server_socket);
-		WSACleanup();
-		return 1;
-	}
-	else
-	{
-		cerr << "Server socket initialization is OK" << endl;
-	}
+		char* msg = new char[msg_size + 1];
+		msg[msg_size] = '\0';
 
-	in_addr adress{};
-	last_error = inet_pton(AF_INET, SERVER_IP, &adress);
+		recv(Connections[index], msg, msg_size, NULL);
 
-	if (last_error <= 0)
-	{
-		cerr << "Error in IP translation to special numeric format" << endl;
-		return 1;
-	}
-
-	sockaddr_in server_info;
-	ZeroMemory(&server_info, sizeof(server_info));
-
-	server_info.sin_family = AF_INET;
-	server_info.sin_addr = adress;
-	server_info.sin_port = htons(PORT_NUMBER);
-
-	last_error = bind(server_socket, (sockaddr*)&server_info, sizeof(server_info));
-
-	if (last_error != 0)
-	{
-		cerr << "Error Socket binding to server::" << WSAGetLastError() << endl;
-		closesocket(server_socket);
-		WSACleanup();
-		return 1;
-	}
-	else
-	{
-		cerr << "Binding socket to Server info is OK" << endl;
-	}
-
-	last_error = listen(server_socket, SOMAXCONN);
-
-	if (last_error != 0)
-	{
-		cerr << "Errors with listening to socket::" << WSAGetLastError() << endl;
-		closesocket(server_socket);
-		WSACleanup();
-		return -1;
-	}
-
-	sockaddr_in client_info;
-
-	ZeroMemory(&client_info, sizeof(client_info));
-
-	int client_info_size = sizeof(client_info);
-
-	SOCKET client_connection = accept(server_socket, (sockaddr*)&client_info, &client_info_size);
-
-	if (client_connection == INVALID_SOCKET)
-	{
-		cerr << "Client detected, but can't connect to a client. Error # " << WSAGetLastError() << endl;
-		closesocket(server_socket);
-		closesocket(client_connection);
-		WSACleanup();
-		return 1;
-	}
-	else
-	{
-		cerr << "Connection to a client established successfully" << endl;
-	}
-
-	vector<char> server_buffer(BUFF_SIZE), client_buffer(BUFF_SIZE);
-
-	short packet_size = 0;
-
-	while (true)
-	{
-		packet_size = recv(client_connection, server_buffer.data(), server_buffer.size(), 0);
-		cout << "Clients message: " << server_buffer.data() << endl;
-
-		cout << "Host message: ";
-		fgets(client_buffer.data(), client_buffer.size(), stdin);
-
-		if (client_buffer[0] == 'x' && client_buffer[1] == 'x' && client_buffer[2] == 'x') {
-			shutdown(client_connection, SD_BOTH);
-			closesocket(server_socket);
-			closesocket(client_connection);
-			WSACleanup();
-			return 0;
+		std::string a = msg;
+		if (a == "exit/")
+		{
+			closesocket(Connections[index]);
+			Connections.erase(Connections.begin() + index);
+			--Counter;
+			return false;
 		}
 
-		packet_size = send(client_connection, client_buffer.data(), client_buffer.size(), 0);
+		for (SOCKET connection : Connections)
+		{
 
-		if (packet_size == SOCKET_ERROR) {
-			cout << "Can't send message to Client. Error:: " << WSAGetLastError() << endl;
-			closesocket(server_socket);
-			closesocket(client_connection);
-			WSACleanup();
-			return 1;
+			if (connection == Connections[index])
+			{
+				continue;
+			}
+
+			Packet msg_type = P_ChatMessage;
+			send(connection, (char*)&msg_type, sizeof(Packet), NULL);
+			send(connection, (char*)&msg_size, sizeof(int), NULL);
+			send(connection, msg, msg_size, NULL);
+		}
+		delete[] msg;
+		break;
+	}
+	default:
+		std::cout << "Unrecognized packet: " << packet_type << std::endl;
+		break;
+	}
+
+	return true;
+}
+
+void ClientHandler(int index) {
+	Packet packet_type{};
+	while (true) {
+		recv(Connections[index], (char*)&packet_type, sizeof(Packet), NULL);
+
+		if (!ProcessPacket(index, packet_type)) {
+			break;
 		}
 	}
+	closesocket(Connections[index]);
+
+}
+
+int main() {
+
+	WSAData WSAData;
+	WORD DLLVersion = MAKEWORD(2, 1);
+	if (WSAStartup(DLLVersion, &WSAData) != 0) {
+		std::cout << "Error" << std::endl;
+		exit(1);
+	}
+
+	SOCKADDR_IN address{};
+	int size_of_address = sizeof(address);
+	address.sin_addr.s_addr = inet_addr("192.168.1.198");
+	address.sin_port = htons(1111);
+	address.sin_family = AF_INET;
+
+	SOCKET sListen = socket(AF_INET, SOCK_STREAM, NULL);
+	bind(sListen, (SOCKADDR*)&address, sizeof(address));
+	listen(sListen, SOMAXCONN);
+
+	SOCKET newConnection;
+	for (int i = 0; i < 100; i++) {
+		newConnection = accept(sListen, (SOCKADDR*)&address, &size_of_address);
+
+		if (newConnection == 0)
+		{
+			std::cout << "Error #2\n";
+		}
+		else
+		{
+			Connections.push_back(newConnection);
+			Counter++;
+			CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)ClientHandler, (LPVOID)(i), NULL, NULL);
+
+			Packet test_packet = P_Test;
+			send(newConnection, (char*)&test_packet, sizeof(Packet), NULL);
+		}
+	}
+
+
+	system("pause");
+	return 0;
 }
