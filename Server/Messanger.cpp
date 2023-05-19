@@ -3,12 +3,18 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <set>
+#include "Server.h"
+#include "Tests.h"
 #pragma warning(disable: 4996)
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
 
+/////1) To change the appropriate work of adding messages to the storage
 
-std::vector<SOCKET>Connections;
+Server server;
+
+std::set<SOCKET>Connections;
 
 int Counter = 0;
 
@@ -17,41 +23,29 @@ enum Packet {
 	P_Test
 };
 
-bool ProcessPacket(int index, Packet packet_type) {
+bool ProcessPacket(SOCKET conn, Packet packet_type) {
 	switch (packet_type) {
 	case P_ChatMessage:
 	{
 		int msg_size{};
 
-		recv(Connections[index], (char*)&msg_size, sizeof(int), NULL);
+		recv(conn, (char*)&msg_size, sizeof(int), NULL);
 
 		char* msg = new char[msg_size + 1];
 		msg[msg_size] = '\0';
 
-		recv(Connections[index], msg, msg_size, NULL);
+		recv(conn, msg, msg_size, NULL);
 
 		std::string a = msg;
 		if (a == "exit/")
 		{
-			closesocket(Connections[index]);
-			Connections.erase(Connections.begin() + index);
+			closesocket(conn);
+			Connections.erase(conn);
 			--Counter;
 			return false;
 		}
 
-		for (SOCKET connection : Connections)
-		{
-
-			if (connection == Connections[index])
-			{
-				continue;
-			}
-
-			Packet msg_type = P_ChatMessage;
-			send(connection, (char*)&msg_type, sizeof(Packet), NULL);
-			send(connection, (char*)&msg_size, sizeof(int), NULL);
-			send(connection, msg, msg_size, NULL);
-		}
+		server.CommitQueryWork(ParseQueryIntoWords(a));
 		delete[] msg;
 		break;
 	}
@@ -63,16 +57,16 @@ bool ProcessPacket(int index, Packet packet_type) {
 	return true;
 }
 
-void ClientHandler(int index) {
+void ClientHandler(SOCKET conn) {
 	Packet packet_type{};
 	while (true) {
-		recv(Connections[index], (char*)&packet_type, sizeof(Packet), NULL);
+		recv(conn, (char*)&packet_type, sizeof(Packet), NULL);
 
-		if (!ProcessPacket(index, packet_type)) {
+		if (!ProcessPacket(conn, packet_type)) {
 			break;
 		}
 	}
-	closesocket(Connections[index]);
+	closesocket(conn);
 
 }
 
@@ -96,7 +90,8 @@ int main() {
 	listen(sListen, SOMAXCONN);
 
 	SOCKET newConnection;
-	for (int i = 0; i < 100; i++) {
+	while (true)
+	{
 		newConnection = accept(sListen, (SOCKADDR*)&address, &size_of_address);
 
 		if (newConnection == 0)
@@ -105,9 +100,9 @@ int main() {
 		}
 		else
 		{
-			Connections.push_back(newConnection);
+			Connections.insert(newConnection);
 			Counter++;
-			CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)ClientHandler, (LPVOID)(i), NULL, NULL);
+			CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)ClientHandler, (LPVOID)(newConnection), NULL, NULL);
 
 			Packet test_packet = P_Test;
 			send(newConnection, (char*)&test_packet, sizeof(Packet), NULL);
