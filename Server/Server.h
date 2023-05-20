@@ -7,7 +7,7 @@
 #include <map>
 #include <deque>
 #include <set>
-#include "Tests.h"
+
 
 using namespace std;
 
@@ -80,7 +80,7 @@ private:
 
 	friend void TestAddUser();
 	friend void TestAddingMessagesToMessageshistoryByID();
-	friend void TestSigningIn();
+//	friend void TestSigningIn();
 	friend void TestErasingMessagesHistory();
 	friend void TestOfGettingIdsOfUsersInTheRightOrder();
 	friend void TestCommitQueryWork();
@@ -112,16 +112,16 @@ void Server::SignUp()
 	AddUser(login, password, profile_name);
 }
 
-User& Server::SignIn(const string& login, const string& password)
-{
-	for (User& user : all_users_)
-	{
-		if (user.login == login && user.password == password)
-		{
-			return user;
-		}
-	}
-}
+//User& Server::SignIn(const string& login, const string& password)
+//{
+//	for (User& user : all_users_)
+//	{
+//		if (user.login == login && user.password == password)
+//		{
+//			return user;
+//		}
+//	}
+//}
 
 void Server::AddUser(const string& login, const string& password, const string& profile_name)
 {

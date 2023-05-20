@@ -10,7 +10,6 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
 
-/////1) To change the appropriate work of adding messages to the storage
 
 Server server;
 
@@ -71,6 +70,7 @@ void ClientHandler(SOCKET conn) {
 }
 
 int main() {
+	TestServer();
 
 	WSAData WSAData;
 	WORD DLLVersion = MAKEWORD(2, 1);
@@ -81,7 +81,7 @@ int main() {
 
 	SOCKADDR_IN address{};
 	int size_of_address = sizeof(address);
-	address.sin_addr.s_addr = inet_addr("192.168.1.198");
+	address.sin_addr.s_addr = inet_addr("192.168.50.121");
 	address.sin_port = htons(1111);
 	address.sin_family = AF_INET;
 
