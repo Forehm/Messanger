@@ -1,3 +1,4 @@
+//#include "stdafx.h"
 #pragma comment(lib, "ws2_32.lib")
 #include <winsock2.h>
 #include <iostream>
@@ -6,7 +7,7 @@
 #pragma warning(disable: 4996)
 
 SOCKET Connection;
-
+int id;
 enum Packet {
 	P_ChatMessage,
 	P_Test
@@ -73,14 +74,48 @@ int main(int argc, char* argv[]) {
 	CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)ClientHandler, NULL, NULL, NULL);
 
 	std::string msg1;
-	while (true) {
-		std::getline(std::cin, msg1);
-		int msg_size = msg1.size();
-		Packet packettype = P_ChatMessage;
-		send(Connection, (char*)&packettype, sizeof(Packet), NULL);
-		send(Connection, (char*)&msg_size, sizeof(int), NULL);
-		send(Connection, msg1.c_str(), msg_size, NULL);
-		Sleep(10);
+	//while (true) {
+	//	std::getline(std::cin, msg1);
+	//	int msg_size = msg1.size();
+	//	Packet packettype = P_ChatMessage;
+	//	send(Connection, (char*)&packettype, sizeof(Packet), NULL);
+	//	send(Connection, (char*)&msg_size, sizeof(int), NULL);
+	//	send(Connection, msg1.c_str(), msg_size, NULL);
+	//	Sleep(10);
+	//}
+
+	while (true)
+	{
+		int option = 0;
+		std::cout << "LogIn________________1" << std::endl;
+		std::cout << "Send message_________2" << std::endl;
+		std::cout << "Delete messages______3" << std::endl;
+		std::cin >> option;
+
+		switch (option)
+		{
+		case 1:
+		{
+			std::string login;
+			std::string password;
+			std::string name;
+			std::cout << "Print your login" << std::endl;
+			std::cin >> login;
+			std::cout << "Print your password" << std::endl;
+			std::cin >> password;
+			std::cout << "Print your name" << std::endl;
+			std::cin >> name;
+			std::string query = "AddUser~" + login + '~' + password + '~' + name + '~';
+			int msg_size = query.size();
+			Packet packettype = P_ChatMessage;
+			send(Connection, (char*)&packettype, sizeof(Packet), NULL);
+			send(Connection, (char*)&msg_size, sizeof(int), NULL);
+			send(Connection, query.c_str(), msg_size, NULL);
+			Sleep(10);
+			break;
+		}
+		}
+
 	}
 
 	system("pause");
