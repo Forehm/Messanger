@@ -16,18 +16,22 @@ using namespace std;
 vector<string> ParseQueryIntoWords(const string& query)
 {
 	vector<string> query_words;
-	string word = "";
-	for (const char& c : query)
+	if (!query.empty())
 	{
-		if (c == '~')
+		string word = "";
+		for (const char& c : query)
 		{
-			query_words.push_back(word);
-			word = "";
+			if (c == '~')
+			{
+				query_words.push_back(word);
+				word = "";
+			}
+			else
+			{
+				word += c;
+			}
 		}
-		else
-		{
-			word += c;
-		}
+
 	}
 	return query_words;
 }
@@ -55,13 +59,13 @@ public:
 
 	void SignUp();
 
-	User& SignIn(const string& login, const string& password);
+	void SignIn(const string& login, const string& password, SOCKET& connection);
 
 	void DeleteMessageHistory(const int user1_id, const int user2_id);
 
-	void CommitQueryWork(const vector<string>& query_words);
+	void CommitQueryWork(const vector<string>& query_words, SOCKET& connection);
 
-private:
+	//private:
 
 	static int id;
 	deque<User> all_users_;
@@ -80,7 +84,7 @@ private:
 
 	friend void TestAddUser();
 	friend void TestAddingMessagesToMessageshistoryByID();
-//	friend void TestSigningIn();
+	//	friend void TestSigningIn();
 	friend void TestErasingMessagesHistory();
 	friend void TestOfGettingIdsOfUsersInTheRightOrder();
 	friend void TestCommitQueryWork();
@@ -112,16 +116,20 @@ void Server::SignUp()
 	AddUser(login, password, profile_name);
 }
 
-//User& Server::SignIn(const string& login, const string& password)
-//{
-//	for (User& user : all_users_)
-//	{
-//		if (user.login == login && user.password == password)
-//		{
-//			return user;
-//		}
-//	}
-//}
+void Server::SignIn(const string& login, const string& password, SOCKET& connection)
+{
+	string error_message = "no user with such login or password";
+	for (User& user : all_users_)
+	{
+		if (user.login == login && user.password == password)
+		{
+			string id_as_string = to_string(user.id);
+			send(connection, (char*)&id_as_string, sizeof(id_as_string), NULL);
+			return;
+		}
+	}
+	send(connection, (char*)&error_message, sizeof(error_message), NULL);
+}
 
 void Server::AddUser(const string& login, const string& password, const string& profile_name)
 {
@@ -159,8 +167,9 @@ void Server::DeleteMessageHistory(const int user1_id, const int user2_id)
 	messages_storage_.erase(messages_to_erase);
 }
 
-void Server::CommitQueryWork(const vector<string>& query_words)
+void Server::CommitQueryWork(const vector<string>& query_words, SOCKET& connection)
 {
+	if (query_words.empty()) { return; }
 	if (query_words[0] == "AddUser")
 	{
 		AddUser(query_words[1], query_words[2], query_words[3]);
@@ -173,4 +182,9 @@ void Server::CommitQueryWork(const vector<string>& query_words)
 	{
 		DeleteMessageHistory(stoi(query_words[1]), stoi(query_words[2]));
 	}
+	if (query_words[0] == "SignIn")
+	{
+		SignIn(query_words[1], query_words[2], connection);
+	}
+	return; /////temporary
 }
