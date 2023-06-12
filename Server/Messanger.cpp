@@ -5,7 +5,6 @@
 #include <string>
 #include <set>
 #include "Server.h"
-#include "Tests.h"
 #pragma warning(disable: 4996)
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
@@ -30,13 +29,13 @@ bool ProcessPacket(SOCKET conn, Packet packet_type) {
 
 		recv(conn, (char*)&msg_size, sizeof(int), NULL);
 
-		char* msg = new char[msg_size + 1];
-		msg[msg_size] = '\0';
+		char* received_msg = new char[msg_size + 1];
+		received_msg[msg_size] = '\0';
 
-		recv(conn, msg, msg_size, NULL);
+		recv(conn, received_msg, msg_size, NULL);
 
-		std::string a = msg;
-		if (a == "exit/")
+		std::string msg_to_process = received_msg;
+		if (msg_to_process == "exit/")
 		{
 			closesocket(conn);
 			Connections.erase(conn);
@@ -44,8 +43,8 @@ bool ProcessPacket(SOCKET conn, Packet packet_type) {
 			return false;
 		}
 
-		server.CommitQueryWork(ParseQueryIntoWords(a));
-		delete[] msg;
+		server.CommitQueryWork(ParseQueryIntoWords(msg_to_process), conn);
+		delete[] received_msg;
 		break;
 	}
 	default:
@@ -70,7 +69,7 @@ void ClientHandler(SOCKET conn) {
 }
 
 int main() {
-	TestServer();
+
 
 	WSAData WSAData;
 	WORD DLLVersion = MAKEWORD(2, 1);
@@ -81,7 +80,7 @@ int main() {
 
 	SOCKADDR_IN address{};
 	int size_of_address = sizeof(address);
-	address.sin_addr.s_addr = inet_addr("192.168.50.121");
+	address.sin_addr.s_addr = inet_addr("192.168.1.198");
 	address.sin_port = htons(1111);
 	address.sin_family = AF_INET;
 
@@ -92,6 +91,10 @@ int main() {
 	SOCKET newConnection;
 	while (true)
 	{
+		cout << "all logins: " << server.all_logins_.size() << endl;
+		cout << "all users: " << server.all_users_.size() << endl;
+		cout << "messages storage: " << server.messages_storage_.size() << endl;
+
 		newConnection = accept(sListen, (SOCKADDR*)&address, &size_of_address);
 
 		if (newConnection == 0)
