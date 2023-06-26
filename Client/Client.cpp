@@ -7,7 +7,7 @@
 #pragma warning(disable: 4996)
 
 SOCKET Connection;
-int id;
+int id; ///temporarily. just to test
 enum Packet {
 	P_ChatMessage,
 	P_Test
