@@ -1,4 +1,4 @@
-﻿#pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "ws2_32.lib")
 #include <winsock2.h>
 #include <iostream>
 #include <vector>
@@ -69,7 +69,7 @@ void ClientHandler(SOCKET conn) {
 }
 
 int main() {
-
+	
 
 	WSAData WSAData;
 	WORD DLLVersion = MAKEWORD(2, 1);
@@ -80,7 +80,7 @@ int main() {
 
 	SOCKADDR_IN address{};
 	int size_of_address = sizeof(address);
-	address.sin_addr.s_addr = inet_addr("192.168.1.198");
+	address.sin_addr.s_addr = inet_addr("192.168.50.121");
 	address.sin_port = htons(1111);
 	address.sin_family = AF_INET;
 
@@ -91,11 +91,13 @@ int main() {
 	SOCKET newConnection;
 	while (true)
 	{
+		newConnection = accept(sListen, (SOCKADDR*)&address, &size_of_address);
+
 		cout << "all logins: " << server.all_logins_.size() << endl;
 		cout << "all users: " << server.all_users_.size() << endl;
 		cout << "messages storage: " << server.messages_storage_.size() << endl;
 
-		newConnection = accept(sListen, (SOCKADDR*)&address, &size_of_address);
+		
 
 		if (newConnection == 0)
 		{
