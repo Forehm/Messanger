@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
 
 	SOCKADDR_IN addr;
 	int sizeofaddr = sizeof(addr);
-	addr.sin_addr.s_addr = inet_addr("192.168.1.198");
+	addr.sin_addr.s_addr = inet_addr("192.168.50.121");
 	addr.sin_port = htons(1111);
 	addr.sin_family = AF_INET;
 
@@ -83,6 +83,10 @@ int main(int argc, char* argv[]) {
 	//	send(Connection, msg1.c_str(), msg_size, NULL);
 	//	Sleep(10);
 	//}
+	std::string login;
+	std::string password;
+	std::string name;
+	int id = 1;
 
 	while (true)
 	{
@@ -96,9 +100,6 @@ int main(int argc, char* argv[]) {
 		{
 		case 1:
 		{
-			std::string login;
-			std::string password;
-			std::string name;
 			std::cout << "Print your login" << std::endl;
 			std::cin >> login;
 			std::cout << "Print your password" << std::endl;
@@ -106,6 +107,23 @@ int main(int argc, char* argv[]) {
 			std::cout << "Print your name" << std::endl;
 			std::cin >> name;
 			std::string query = "AddUser~" + login + '~' + password + '~' + name + '~';
+			int msg_size = query.size();
+			Packet packettype = P_ChatMessage;
+			send(Connection, (char*)&packettype, sizeof(Packet), NULL);
+			send(Connection, (char*)&msg_size, sizeof(int), NULL);
+			send(Connection, query.c_str(), msg_size, NULL);
+			Sleep(10);
+			break;
+		}
+		case 2:
+		{
+			std::cout << "Who would you like to send your message to?" << std::endl;
+			std::string receiver;
+			std::cin >> receiver;
+			std::cout << "Print a message" << std::endl;
+			std::string message;
+			std::cin >> message;
+			std::string query = "SendMSG~" + id + '~' + receiver + '~' + message + '~';
 			int msg_size = query.size();
 			Packet packettype = P_ChatMessage;
 			send(Connection, (char*)&packettype, sizeof(Packet), NULL);
