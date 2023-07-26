@@ -13,6 +13,10 @@ enum Packet {
 	P_Test
 };
 
+uint64_t HashPassword(const std::string& password)
+{
+}
+
 bool ProcessPacket(Packet packettype) {
 	switch (packettype) {
 	case P_ChatMessage:
