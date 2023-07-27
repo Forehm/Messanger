@@ -15,6 +15,7 @@ enum Packet {
 
 uint64_t HashPassword(const std::string& password)
 {
+	uint64_t id = 0;
 }
 
 bool ProcessPacket(Packet packettype) {
