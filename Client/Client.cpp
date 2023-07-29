@@ -13,11 +13,44 @@ enum Packet {
 	P_Test
 };
 
-uint64_t HashPassword(const std::string& password) noexcept
+struct PasswordHash
 {
-	uint64_t id = 0;
- 
+    uint64_t password_content_hash;
+    uint64_t password_length_hash;
+    uint64_t password_summary_hash;
+
+    bool operator == (const PasswordHash& other_hash) const
+    {
+        return password_content_hash == other_hash.password_content_hash &&
+            password_length_hash == other_hash.password_length_hash && 
+         password_summary_hash == other_hash.password_summary_hash;
+    }
+};
+
+
+PasswordHash HashPassword(const std::string& password)
+{
+    PasswordHash final_hash{};
+    const char* password_as_array = password.c_str();
+    const size_t size = password.size();
+    for (int i = 0; i < size; ++i)
+    {
+        final_hash.password_content_hash += static_cast<uint64_t>(password_as_array[i]);
+        final_hash.password_length_hash += static_cast<uint64_t>(password_as_array[i]);
+        final_hash.password_summary_hash = final_hash.password_content_hash * final_hash.password_length_hash;
+    }
+    for (int i = 0; i < size; ++i)
+    {
+        final_hash.password_content_hash *= static_cast<uint64_t>(password_as_array[i]) * static_cast<uint64_t>(password_as_array[i]);
+    }
+    for (int i = 0; i < size; ++i)
+    {
+        final_hash.password_length_hash *= std::pow((uint64_t)password_as_array[i], size);
+    }
+    final_hash.password_summary_hash = final_hash.password_content_hash + final_hash.password_length_hash * (size);
+    return final_hash;
 }
+
 
 bool ProcessPacket(Packet packettype) {
 	switch (packettype) {
