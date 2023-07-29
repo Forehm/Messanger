@@ -13,9 +13,10 @@ enum Packet {
 	P_Test
 };
 
-uint64_t HashPassword(const std::string& password)
+uint64_t HashPassword(const std::string& password) noexcept
 {
 	uint64_t id = 0;
+ 
 }
 
 bool ProcessPacket(Packet packettype) {
