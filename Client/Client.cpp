@@ -37,17 +37,18 @@ PasswordHash HashPassword(const std::string& password)
     {
         final_hash.password_content_hash += static_cast<uint64_t>(password_as_array[i]);
         final_hash.password_length_hash += static_cast<uint64_t>(password_as_array[i]);
-        final_hash.password_summary_hash = final_hash.password_content_hash * final_hash.password_length_hash;
+        final_hash.password_summary_hash += final_hash.password_content_hash * final_hash.password_length_hash;
     }
     for (int i = 0; i < size; ++i)
     {
         final_hash.password_content_hash *= static_cast<uint64_t>(password_as_array[i]) * static_cast<uint64_t>(password_as_array[i]);
     }
+    final_hash.password_content_hash *= 64;
     for (int i = 0; i < size; ++i)
     {
         final_hash.password_length_hash *= std::pow((uint64_t)password_as_array[i], size);
     }
-    final_hash.password_summary_hash = final_hash.password_content_hash + final_hash.password_length_hash * (size);
+    final_hash.password_summary_hash *= (final_hash.password_content_hash + final_hash.password_length_hash * size);
     return final_hash;
 }
 
