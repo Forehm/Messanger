@@ -7,7 +7,8 @@
 
 SOCKET Connection;
 int id; ///temporarily. just to test
-enum Packet {
+enum Packet 
+{
 	P_ChatMessage,
 	P_Test
 };
@@ -51,8 +52,10 @@ PasswordHash HashPassword(const std::string& password)
 }
 
 
-bool ProcessPacket(Packet packettype) {
-	switch (packettype) {
+bool ProcessPacket(Packet packettype)
+ {
+	switch (packettype) 
+{
 	case P_ChatMessage:
 	{
 		int msg_size;
