@@ -7,7 +7,8 @@
 #include <map>
 #include <deque>
 #include <set>
-
+#include <unordered_map>
+#include <fstream>
 
 using namespace std;
 
@@ -65,16 +66,16 @@ public:
 
 	void CommitQueryWork(const vector<string>& query_words, SOCKET& connection);
 
-	//private:
+private:
 
 	static int id;
 	deque<User> all_users_;
 	map<pair<int, int>, deque<string>> messages_storage_;
 	set<string>all_logins_;
+	unordered_map<int, const User*> users_by_ids_;
+	void SaveMessagesHistory(const std::pair<int, int>& users);
 
 	void AddUser(const string& login, const string& password, const string& profile_name);
-
-	void SaveMessagesHistory(const std::pair<int, int>& users);
 
 	bool is_password_appropriate(const string& password) const;
 
@@ -118,19 +119,6 @@ void Server::SignUp()
 	AddUser(login, password, profile_name);
 }
 
-void Server::DeleteMessageHistory(const int user1_id, const int user2_id)
-{
-	pair<int, int> pair_of_ids = GetIdsFromUsersinRightOrder(user1_id, user2_id);
-	map<pair<int, int>, deque<string>>::iterator messages_to_erase = messages_storage_.find(pair_of_ids);
-
-	if (messages_to_erase != messages_storage_.end())
-	{
-		SaveMessagesHistory(pair_of_ids);
-		messages_storage_.erase(messages_to_erase);
-	}
-	
-}
-
 void Server::SignIn(const string& login, const string& password, SOCKET& connection)
 {
 	string error_message = "no user with such login or password";
@@ -146,10 +134,27 @@ void Server::SignIn(const string& login, const string& password, SOCKET& connect
 	send(connection, (char*)&error_message, sizeof(error_message), NULL);
 }
 
+inline void Server::SaveMessagesHistory(const std::pair<int, int>& users)
+{
+	if (users_by_ids_.count(users.first) && users_by_ids_.count(users.second))
+	{
+		std::string path = users_by_ids_[users.first]->profile_name + " , " + users_by_ids_[users.second]->profile_name;
+		std::fstream file;
+		file.open(path);
+		for (const auto& message : messages_storage_[{users.first, users.second}])
+		{
+			file << message << endl;;
+		}
+		file.close();
+	}
+	 
+}
+
 void Server::AddUser(const string& login, const string& password, const string& profile_name)
 {
 	all_users_.push_back({ ++id, login, password, profile_name });
 	all_logins_.insert(login);
+	users_by_ids_.insert({ id, &all_users_.back() });
 }
 
 bool Server::is_password_appropriate(const string& password) const
@@ -179,7 +184,13 @@ void Server::DeleteMessageHistory(const int user1_id, const int user2_id)
 {
 	pair<int, int> pair_of_ids = GetIdsFromUsersinRightOrder(user1_id, user2_id);
 	map<pair<int, int>, deque<string>>::iterator messages_to_erase = messages_storage_.find(pair_of_ids);
-	messages_storage_.erase(messages_to_erase);
+
+	if (messages_to_erase != messages_storage_.end())
+	{
+		SaveMessagesHistory(pair_of_ids);
+		messages_storage_.erase(messages_to_erase);
+	}
+	
 }
 
 void Server::CommitQueryWork(const vector<string>& query_words, SOCKET& connection)
