@@ -74,6 +74,8 @@ public:
 
 	void AddUser(const string& login, const string& password, const string& profile_name);
 
+	void SaveMessagesHistory(const std::pair<int, int>& users);
+
 	bool is_password_appropriate(const string& password) const;
 
 	void AddMessage(const int sender_id, const int receiver_id, const string& message);
