@@ -116,6 +116,19 @@ void Server::SignUp()
 	AddUser(login, password, profile_name);
 }
 
+void Server::DeleteMessageHistory(const int user1_id, const int user2_id)
+{
+	pair<int, int> pair_of_ids = GetIdsFromUsersinRightOrder(user1_id, user2_id);
+	map<pair<int, int>, deque<string>>::iterator messages_to_erase = messages_storage_.find(pair_of_ids);
+
+	if (messages_to_erase != messages_storage_.end())
+	{
+		SaveMessagesHistory(pair_of_ids);
+		messages_storage_.erase(messages_to_erase);
+	}
+	
+}
+
 void Server::SignIn(const string& login, const string& password, SOCKET& connection)
 {
 	string error_message = "no user with such login or password";
