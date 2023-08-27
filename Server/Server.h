@@ -195,15 +195,15 @@ void Server::DeleteMessageHistory(const int user1_id, const int user2_id)
 void Server::CommitQueryWork(const vector<string>& query_words, SOCKET& connection)
 {
 	if (query_words.empty()) { return; }
-	if (query_words[0] == "AddUser")
+	if (query_words.front() == "AddUser")
 	{
 		AddUser(query_words[1], query_words[2], query_words[3]);
 	}
-	if (query_words[0] == "SendMSG")
+	if (query_words.front() == "SendMSG")
 	{
 		AddMessage(stoi(query_words[1]), stoi(query_words[2]), query_words[3]);
 	}
-	if (query_words[0] == "DelMSG")
+	if (query_words.front() == "DelMSG")
 	{
 		DeleteMessageHistory(stoi(query_words[1]), stoi(query_words[2]));
 	}
