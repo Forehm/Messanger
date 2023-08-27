@@ -68,7 +68,7 @@ public:
 
 private:
 
-	static int id;
+	static int id_;
 	deque<User> all_users_;
 	map<pair<int, int>, deque<string>> messages_storage_;
 	set<string>all_logins_;
@@ -93,7 +93,7 @@ private:
 	friend void TestCommitQueryWork();
 };
 
-int Server::id = 0;
+int Server::id_ = 0;
 
 
 
@@ -152,9 +152,9 @@ inline void Server::SaveMessagesHistory(const std::pair<int, int>& users)
 
 void Server::AddUser(const string& login, const string& password, const string& profile_name)
 {
-	all_users_.push_back({ ++id, login, password, profile_name });
+	all_users_.push_back({ ++id_, login, password, profile_name });
 	all_logins_.insert(login);
-	users_by_ids_.insert({ id, &all_users_.back() });
+	users_by_ids_.insert({ id_, &all_users_.back() });
 }
 
 bool Server::is_password_appropriate(const string& password) const
