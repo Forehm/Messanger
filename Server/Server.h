@@ -207,7 +207,7 @@ void Server::CommitQueryWork(const vector<string>& query_words, SOCKET& connecti
 	{
 		DeleteMessageHistory(stoi(query_words[1]), stoi(query_words[2]));
 	}
-	if (query_words[0] == "SignIn")
+	if (query_words.front() == "SignIn")
 	{
 		SignIn(query_words[1], query_words[2], connection);
 	}
