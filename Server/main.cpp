@@ -11,15 +11,14 @@
 
 
 Server server;
-
-std::set<SOCKET>Connections;
-
 int Counter = 0;
+ 
 
 enum Packet {
 	P_ChatMessage,
 	P_Test
 };
+
 
 bool ProcessPacket(SOCKET conn, Packet packet_type) {
 	switch (packet_type) {
@@ -38,7 +37,6 @@ bool ProcessPacket(SOCKET conn, Packet packet_type) {
 		if (msg_to_process == "exit/")
 		{
 			closesocket(conn);
-			Connections.erase(conn);
 			--Counter;
 			return false;
 		}
@@ -68,8 +66,9 @@ void ClientHandler(SOCKET conn) {
 
 }
 
+
 int main() {
-	
+
 
 	WSAData WSAData;
 	WORD DLLVersion = MAKEWORD(2, 1);
@@ -93,11 +92,6 @@ int main() {
 	{
 		newConnection = accept(sListen, (SOCKADDR*)&address, &size_of_address);
 
-		cout << "all logins: " << server.all_logins_.size() << endl;
-		cout << "all users: " << server.all_users_.size() << endl;
-		cout << "messages storage: " << server.messages_storage_.size() << endl;
-
-		
 
 		if (newConnection == 0)
 		{
@@ -105,7 +99,7 @@ int main() {
 		}
 		else
 		{
-			Connections.insert(newConnection);
+			server.AddConnection(newConnection);
 			Counter++;
 			CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)ClientHandler, (LPVOID)(newConnection), NULL, NULL);
 
