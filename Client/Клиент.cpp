@@ -1,62 +1,26 @@
-#pragma comment(lib, "ws2_32.lib")
+﻿#pragma comment(lib, "ws2_32.lib")
 #include <winsock2.h>
 #include <iostream>
 #include <string>
+#include "cryptography.h"
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #pragma warning(disable: 4996)
 
+
 SOCKET Connection;
-int id; ///temporarily. just to test
-enum Packet 
+
+
+enum Packet
 {
 	P_ChatMessage,
 	P_Test
 };
 
-struct PasswordHash
-{
-    uint64_t password_content_hash;
-    uint64_t password_length_hash;
-    uint64_t password_summary_hash;
-
-    bool operator == (const PasswordHash& other_hash) const
-    {
-        return password_content_hash == other_hash.password_content_hash &&
-            password_length_hash == other_hash.password_length_hash && 
-         password_summary_hash == other_hash.password_summary_hash;
-    }
-};
-
-
-PasswordHash HashPassword(const std::string& password)
-{
-    PasswordHash final_hash{};
-    const char* password_as_array = password.c_str();
-    const size_t size = password.size();
-    for (int i = 0; i < size; ++i)
-    {
-        final_hash.password_content_hash += static_cast<uint64_t>(password_as_array[i]);
-        final_hash.password_length_hash += static_cast<uint64_t>(password_as_array[i]);
-        final_hash.password_summary_hash += final_hash.password_content_hash * final_hash.password_length_hash;
-    }
-    for (int i = 0; i < size; ++i)
-    {
-        final_hash.password_content_hash *= static_cast<uint64_t>(password_as_array[i]) * static_cast<uint64_t>(password_as_array[i]);
-    }
-    final_hash.password_content_hash *= 64;
-    for (int i = 0; i < size; ++i)
-    {
-        final_hash.password_length_hash *= std::pow((uint64_t)password_as_array[i], size);
-    }
-    final_hash.password_summary_hash *= (final_hash.password_content_hash + final_hash.password_length_hash * size);
-    return final_hash;
-}
-
 
 bool ProcessPacket(Packet packettype)
- {
-	switch (packettype) 
 {
+	switch (packettype)
+	{
 	case P_ChatMessage:
 	{
 		int msg_size;
@@ -91,8 +55,9 @@ void ClientHandler() {
 	closesocket(Connection);
 }
 
-int main(int argc, char* argv[]) {
-	//WSAStartup
+int main() 
+{
+	
 	WSAData wsaData;
 	WORD DLLVersion = MAKEWORD(2, 1);
 	if (WSAStartup(DLLVersion, &wsaData) != 0) {
@@ -125,6 +90,7 @@ int main(int argc, char* argv[]) {
 	//	send(Connection, msg1.c_str(), msg_size, NULL);
 	//	Sleep(10);
 	//}
+	cryptography::GivenerEncrypter encrypter("cat");
 	std::string login;
 	std::string password;
 	std::string name;
