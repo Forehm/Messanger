@@ -31,6 +31,11 @@ cryptography::PasswordHash cryptography::HashPassword(const std::string& passwor
 	return final_hash;
 }
 
+bool cryptography::is_password_appropriate(const std::string& password)
+{
+	return password.size() >= 8 ? true : false;
+}
+
 void cryptography::GivenerEncrypter::FillSquare(std::string alphabet_copy)
 {
 	square_.push_back(alphabet_copy);
