@@ -2,12 +2,12 @@
 #include <mutex>
 
 
-inline void Server::SaveMessagesHistory(const std::pair<int, int>& users)
+void Server::SaveMessagesHistory(const std::pair<int, int>& users)
 {
 	if (users_by_ids_.count(users.first) && users_by_ids_.count(users.second))
 	{
 		std::string path = users_by_ids_[users.first]->profile_name + " , " + users_by_ids_[users.second]->profile_name;
-		std::fstream file;
+		std::ofstream file;
 		file.open(path);
 		for (const auto& message : messages_storage_[{users.first, users.second}])
 		{
@@ -19,20 +19,29 @@ inline void Server::SaveMessagesHistory(const std::pair<int, int>& users)
 
 void Server::AddUser(const std::string& login, const std::string& password, const std::string& profile_name, SOCKET& connection)
 {
-	all_users_.push_back({ ++id, login, password, profile_name });
+	int user_id = ++id;
+	all_users_.push_back({ user_id, login, password, profile_name });
 	sockets_by_users_[all_users_.back()] = connection;
 	all_logins_.insert(login);
-	users_by_ids_.insert({ id, &all_users_.back() });
-}
+	users_by_ids_.insert({ user_id, &all_users_.back() });
 
-bool Server::is_password_appropriate(const std::string& password) const
-{
-	return password.size() >= 8 ? true : false;
+	std::string users_path_ = "users.txt";
+	std::ofstream users_file_(users_path_, std::ios_base::app);
+
+	users_file_ << profile_name << " - " << user_id << std::endl;
 }
 
 void Server::AddMessage(const int sender_id, const int receiver_id, const std::string& message)
 {
-	messages_storage_[GetIdsFromUsersInRightOrder(sender_id, receiver_id)].push_back(message);
+	std::pair ids = GetIdsFromUsersInRightOrder(sender_id, receiver_id);
+	messages_storage_[{ids.first, ids.second}].push_back(message);
+
+	
+
+	std::string path = "messages " + std::to_string(ids.first) + " & " + std::to_string(ids.second) + ".txt";
+	std::ofstream file(path, std::ios_base::app);
+	file << message << std::endl;
+	std::cout << path << " -/- " << message << std::endl;
 }
 
 std::pair<int, int> Server::GetIdsFromUsersInRightOrder(const int sender_id, const int receiver_id) const
@@ -60,7 +69,7 @@ void Server::DeleteMessageHistory(const int user1_id, const int user2_id)
 	}
 }
 
-inline void Server::CommitQueryWork(const std::vector<std::string>& query_words, SOCKET& connection)
+void Server::CommitQueryWork(const std::vector<std::string>& query_words, SOCKET connection)
 {
 	if (query_words.empty()) { return; }
 	if (query_words[0] == "AddUser")
@@ -75,10 +84,14 @@ inline void Server::CommitQueryWork(const std::vector<std::string>& query_words,
 	{
 		DeleteMessageHistory(stoi(query_words[1]), stoi(query_words[2]));
 	}
-	return; /////temporary
+	if (query_words[0] == "LogIn")
+	{
+		SignIn(query_words[1], query_words[2], connection);
+	}
+	return;
 }
 
-void Server::AddConnection(SOCKET& connection)
+void Server::AddConnection(SOCKET connection)
 {
 	connections_.push_back(connection);
 }
@@ -91,10 +104,14 @@ void Server::SignIn(const std::string& login, const std::string& password, SOCKE
 		{
 			sockets_by_users_[user] = connection;
 			std::string str_id = std::to_string(user.id);
+			Packet test_packet = P_ChatMessage;
+			send(connection, (char*)&test_packet, sizeof(Packet), NULL);
 			send(connection, str_id.c_str(), sizeof(str_id), NULL);
 			return;
 		}
 	}
+	Packet test_packet = P_ChatMessage;
+	send(connection, (char*)&test_packet, sizeof(Packet), NULL);
 	std::string str_id = std::to_string(-1);
 	send(connection, str_id.c_str(), sizeof(str_id), NULL);
 }
@@ -120,25 +137,6 @@ bool User::operator!=(const User& another) const
 		&& (this->profile_name != another.profile_name));
 }
 
-std::vector<std::string> ParseQueryIntoWords(const std::string& query)
-{
-	std::vector<std::string> query_words;
-	if (!query.empty())
-	{
-		std::string word = "";
-		for (const char& c : query)
-		{
-			if (c == '~')
-			{
-				query_words.push_back(word);
-				word = "";
-			}
-			else
-			{
-				word += c;
-			}
-		}
 
-	}
-	return query_words;
-}
+
+int Server::id = 0;

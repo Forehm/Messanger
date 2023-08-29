@@ -4,20 +4,40 @@
 #include <vector>
 #include <string>
 #include <set>
-#include "Server.h"
+#include "server.h"
 #pragma warning(disable: 4996)
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
+
+std::vector<std::string> ParseQueryIntoWords(const std::string& query)
+{
+	std::vector<std::string> query_words;
+	if (!query.empty())
+	{
+		std::string word = "";
+		for (const char& c : query)
+		{
+			if (c == '~')
+			{
+				query_words.push_back(word);
+				word = "";
+			}
+			else
+			{
+				word += c;
+			}
+		}
+
+	}
+	return query_words;
+}
 
 
 Server server;
 int Counter = 0;
  
 
-enum Packet {
-	P_ChatMessage,
-	P_Test
-};
+
 
 
 bool ProcessPacket(SOCKET conn, Packet packet_type) {
@@ -40,8 +60,9 @@ bool ProcessPacket(SOCKET conn, Packet packet_type) {
 			--Counter;
 			return false;
 		}
-
+		
 		server.CommitQueryWork(ParseQueryIntoWords(msg_to_process), conn);
+		
 		delete[] received_msg;
 		break;
 	}
@@ -63,7 +84,6 @@ void ClientHandler(SOCKET conn) {
 		}
 	}
 	closesocket(conn);
-
 }
 
 
@@ -79,7 +99,7 @@ int main() {
 
 	SOCKADDR_IN address{};
 	int size_of_address = sizeof(address);
-	address.sin_addr.s_addr = inet_addr("192.168.50.121");
+	address.sin_addr.s_addr = inet_addr("192.168.1.78");
 	address.sin_port = htons(1111);
 	address.sin_family = AF_INET;
 
@@ -92,12 +112,11 @@ int main() {
 	{
 		newConnection = accept(sListen, (SOCKADDR*)&address, &size_of_address);
 
-
 		if (newConnection == 0)
 		{
 			std::cout << "Error #2\n";
 		}
-		else
+		else 
 		{
 			server.AddConnection(newConnection);
 			Counter++;
