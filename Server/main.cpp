@@ -38,8 +38,6 @@ int Counter = 0;
  
 
 
-
-
 bool ProcessPacket(SOCKET conn, Packet packet_type) {
 	switch (packet_type) {
 	case P_ChatMessage:
