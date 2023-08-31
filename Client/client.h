@@ -2,13 +2,40 @@
 #include <string>
 #include <set>
 #include <WinSock2.h>
+#include <unordered_map>
+#include <deque>
+#include <ostream>
+#include <map>
 
 class Client
 {
 public:
-	Client(const std::string& login, const std::string& password) : login_(login), password_(password)
-	{
-	}
+	
+	void SetName(const std::string& name);
+
+	void SetLogin(const std::string& login);
+
+	void SetPassword(const std::string& password);
+
+	void SetId(const int id);
+
+	void SetAddress(SOCKET address);
+
+	void AddFriend(const int friend_id);
+
+	void AddPersonToBlackList(const std::string& name, const int friend_id);
+
+	void AddMessage(const int interlocutor_id, std::string message);
+
+	int GetId() const;
+
+	std::string GetName() const;
+	
+	size_t GetFriendsCount() const;
+
+	size_t GetBlackListSize() const;
+
+	void GetBlockedUsers(std::ostream& out) const;
 
 private:
 	std::string name_;
@@ -18,5 +45,6 @@ private:
 	SOCKET address_;
 	std::set<int> dialogues_with_;
 	std::set<int> friends_;
-	std::set<int> black_list_;
+	std::map<std::string, int> black_list_;
+	std::unordered_map<int, std::deque<std::string>> messages_;
 };

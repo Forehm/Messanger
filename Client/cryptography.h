@@ -22,8 +22,7 @@ namespace cryptography
 
 	PasswordHash HashPassword(const std::string& password);
 
-
-	bool is_password_appropriate(const std::string& password);
+	bool HasMinLength(const std::string& password);
 
 
 	class GivenerEncrypter
