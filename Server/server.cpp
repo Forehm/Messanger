@@ -17,7 +17,7 @@ void Server::SaveMessagesHistory(const std::pair<int, int>& users)
 	}
 }
 
-void Server::AddUser(const std::string& login, const std::string& password, const std::string& profile_name, SOCKET& connection)
+void Server::AddUser(const std::string& login, const std::string& password, const std::string& profile_name, SOCKET connection)
 {
 	int user_id = ++id;
 	all_users_.push_back({ user_id, login, password, profile_name });
@@ -29,6 +29,7 @@ void Server::AddUser(const std::string& login, const std::string& password, cons
 	std::ofstream users_file_(users_path_, std::ios_base::app);
 
 	users_file_ << profile_name << " - " << user_id << std::endl;
+	//LogIn(login, password, connection);
 }
 
 void Server::AddMessage(const int sender_id, const int receiver_id, const std::string& message)
@@ -36,11 +37,11 @@ void Server::AddMessage(const int sender_id, const int receiver_id, const std::s
 	std::pair ids = GetIdsFromUsersInRightOrder(sender_id, receiver_id);
 	messages_storage_[{ids.first, ids.second}].push_back(message);
 
-	
+	std::string sender_name = users_by_ids_[sender_id]->profile_name;
 
 	std::string path = "messages " + std::to_string(ids.first) + " & " + std::to_string(ids.second) + ".txt";
 	std::ofstream file(path, std::ios_base::app);
-	file << message << std::endl;
+	file << sender_name << ": " << message << std::endl;
 	std::cout << path << " -/- " << message << std::endl;
 }
 
@@ -78,7 +79,7 @@ void Server::CommitQueryWork(const std::vector<std::string>& query_words, SOCKET
 	}
 	if (query_words[0] == "SendMSG")
 	{
-		AddMessage(stoi(query_words[1]), stoi(query_words[2]), query_words[3]);
+		SendMessageFromTo(std::stoi(query_words[1]), std::stoi(query_words[2]), query_words[3]);
 	}
 	if (query_words[0] == "DelMSG")
 	{
@@ -86,7 +87,11 @@ void Server::CommitQueryWork(const std::vector<std::string>& query_words, SOCKET
 	}
 	if (query_words[0] == "LogIn")
 	{
-		SignIn(query_words[1], query_words[2], connection);
+		LogIn(query_words[1], query_words[2], connection);
+	}
+	if (query_words[0] == "Block")
+	{
+		BlockUser(std::stoi(query_words[1]), std::stoi(query_words[2]), connection);
 	}
 	return;
 }
@@ -96,45 +101,98 @@ void Server::AddConnection(SOCKET connection)
 	connections_.push_back(connection);
 }
 
-void Server::SignIn(const std::string& login, const std::string& password, SOCKET& connection)
+void Server::LogIn(const std::string& login, const std::string& password, SOCKET connection)
 {
 	for (const User& user : all_users_)
 	{
 		if (user.login == login && user.password == password)
 		{
 			sockets_by_users_[user] = connection;
-			std::string str_id = std::to_string(user.id);
-			Packet test_packet = P_ChatMessage;
-			send(connection, (char*)&test_packet, sizeof(Packet), NULL);
-			send(connection, str_id.c_str(), sizeof(str_id), NULL);
+			std::string query = "UserDataRespond~" + std::to_string(user.id) + '~' + user.profile_name + '~';
+			int msg_size = query.size();
+			Packet packettype = P_CommandMessage;
+			send(connection, (char*)&packettype, sizeof(Packet), NULL);
+			send(connection, (char*)&msg_size, sizeof(int), NULL);
+			send(connection, query.c_str(), msg_size, NULL);
+
 			return;
 		}
 	}
-	Packet test_packet = P_ChatMessage;
-	send(connection, (char*)&test_packet, sizeof(Packet), NULL);
-	std::string str_id = std::to_string(-1);
-	send(connection, str_id.c_str(), sizeof(str_id), NULL);
+	std::string query = "IdErrorRespond~-1~";
+	int msg_size = query.size();
+    Packet packettype = P_CommandMessage;
+	send(connection, (char*)&packettype, sizeof(Packet), NULL);
+	send(connection, (char*)&msg_size, sizeof(int), NULL);
+	send(connection, query.c_str(), msg_size, NULL);
 }
 
 void Server::SendMessageFromTo(const int id_sender, const int id_receiver, const std::string& message)
 {
-	AddMessage(id_sender, id_receiver, message);
+	if (id_sender == id_receiver)
+	{
+		return;
+	}
 	for (const auto& [user, user_address] : sockets_by_users_)
 	{
 		if (user.id == id_receiver)
 		{
-			send(user_address, message.c_str(), sizeof(message), NULL);
+			if (user.IsUserInBlackList(id_sender))
+			{
+				return;
+			}
+			int msg_size = message.size();
+			Packet packettype = P_Message;
+
+			send(user_address, (char*)&packettype, sizeof(Packet), NULL);
+			send(user_address, (char*)&msg_size, sizeof(int), NULL);
+			send(user_address, message.c_str(), msg_size, NULL);
 			return;
 		}
 	}
+	AddMessage(id_sender, id_receiver, message);
 	return;
 }
 
+void Server::BlockUser(const int id_sender, const int other_id, SOCKET connection)
+{
+	auto it_user = std::find_if(all_users_.begin(), all_users_.end(), [id_sender](const User& user)
+		{
+			return user.id == id_sender;
+		});
+	auto it_to_block = std::find_if(all_users_.begin(), all_users_.end(), [other_id](const User& user)
+		{
+			return user.id == other_id;
+		});
+	if (it_to_block == all_users_.end() || it_user == all_users_.end())
+	{
+		return;
+	}
+	
+	it_user->black_list.insert({ it_to_block->id, it_to_block->profile_name });
+	std::string query = "BlockRespond~" + it_to_block->profile_name + '~' + std::to_string(it_to_block->id) + '~';
+	int msg_size = query.size();
+	Packet packettype = P_CommandMessage;
+	send(connection, (char*)&packettype, sizeof(Packet), NULL);
+	send(connection, (char*)&msg_size, sizeof(int), NULL);
+	send(connection, query.c_str(), msg_size, NULL);
+	
+}
+
+
+bool User::IsUserInBlackList(const int id) const
+{
+	return black_list.count(id);
+}
 
 bool User::operator!=(const User& another) const
 {
 	return ((this->id != another.id) && (this->login != another.login) && (this->password != another.password)
 		&& (this->profile_name != another.profile_name));
+}
+
+bool User::operator<(const User& another) const
+{
+	return this->id < another.id;
 }
 
 

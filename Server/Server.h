@@ -9,7 +9,7 @@
 #include <set>
 #include <unordered_map>
 #include <fstream>
-
+#include <map>
 
 
 
@@ -23,32 +23,36 @@ struct User
 	std::string password = "";
 	std::string profile_name = "";
 	std::set<int> conversation_with;
+	std::set<int> friends;
+	std::map<int, std::string> black_list;
+
+	bool IsUserInBlackList(const int id) const;
 
 	bool operator != (const User& another) const;
 
-	bool operator < (const User& another) const
-	{
-		return this->id < another.id;
-	}
+	bool operator < (const User& another) const;
 };
 
 enum Packet {
-	P_ChatMessage,
-	P_Test
+
+	P_Test,
+	P_CommandMessage,
+	P_Message
 };
 
 class Server
 {
 public:
 
-	void CommitQueryWork(const std::vector<std::string>& query_words, SOCKET connection);///
+	void CommitQueryWork(const std::vector<std::string>& query_words, SOCKET connection);
 
 	void AddConnection(SOCKET connection);
 
-	void SignIn(const std::string& login, const std::string& password, SOCKET& connection);///
+	void LogIn(const std::string& login, const std::string& password, SOCKET connection);
 	
 	void SendMessageFromTo(const int id_sender, const int id_receiver, const std::string& message);
 
+	void BlockUser(const int id_sender, const int other_id, SOCKET connection);
 
 private:
 
@@ -63,13 +67,13 @@ private:
 
 	void DeleteMessageHistory(const int user1_id, const int user2_id);
 
-	void SaveMessagesHistory(const std::pair<int, int>& users);///
+	void SaveMessagesHistory(const std::pair<int, int>& users);
 
-	void AddUser(const std::string& login, const std::string& password, const std::string& profile_name, SOCKET& connection);///
+	void AddUser(const std::string& login, const std::string& password, const std::string& profile_name, SOCKET connection);
 
-	void AddMessage(const int sender_id, const int receiver_id, const std::string& message);///
+	void AddMessage(const int sender_id, const int receiver_id, const std::string& message);
 
-	std::pair<int, int> GetIdsFromUsersInRightOrder(const int sender_id, const int receiver_id) const;///
+	std::pair<int, int> GetIdsFromUsersInRightOrder(const int sender_id, const int receiver_id) const;
 
 };
 

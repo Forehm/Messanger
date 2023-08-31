@@ -38,9 +38,16 @@ int Counter = 0;
  
 
 
+
+
 bool ProcessPacket(SOCKET conn, Packet packet_type) {
 	switch (packet_type) {
-	case P_ChatMessage:
+
+	case P_Test:
+	{
+		break;
+	}
+	case P_CommandMessage:
 	{
 		int msg_size{};
 
@@ -52,15 +59,9 @@ bool ProcessPacket(SOCKET conn, Packet packet_type) {
 		recv(conn, received_msg, msg_size, NULL);
 
 		std::string msg_to_process = received_msg;
-		if (msg_to_process == "exit/")
-		{
-			closesocket(conn);
-			--Counter;
-			return false;
-		}
 		
 		server.CommitQueryWork(ParseQueryIntoWords(msg_to_process), conn);
-		
+
 		delete[] received_msg;
 		break;
 	}
@@ -74,9 +75,10 @@ bool ProcessPacket(SOCKET conn, Packet packet_type) {
 
 void ClientHandler(SOCKET conn) {
 	Packet packet_type{};
+	char msg[256];
 	while (true) {
 		recv(conn, (char*)&packet_type, sizeof(Packet), NULL);
-
+		
 		if (!ProcessPacket(conn, packet_type)) {
 			break;
 		}
@@ -87,6 +89,7 @@ void ClientHandler(SOCKET conn) {
 
 int main() {
 
+	
 
 	WSAData WSAData;
 	WORD DLLVersion = MAKEWORD(2, 1);
@@ -94,7 +97,7 @@ int main() {
 		std::cout << "Error" << std::endl;
 		exit(1);
 	}
-
+	
 	SOCKADDR_IN address{};
 	int size_of_address = sizeof(address);
 	address.sin_addr.s_addr = inet_addr("192.168.1.78");
@@ -106,6 +109,7 @@ int main() {
 	listen(sListen, SOMAXCONN);
 
 	SOCKET newConnection;
+	
 	while (true)
 	{
 		newConnection = accept(sListen, (SOCKADDR*)&address, &size_of_address);
@@ -117,7 +121,7 @@ int main() {
 		else 
 		{
 			server.AddConnection(newConnection);
-			Counter++;
+			
 			CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)ClientHandler, (LPVOID)(newConnection), NULL, NULL);
 
 			Packet test_packet = P_Test;
