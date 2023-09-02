@@ -29,7 +29,7 @@ void Server::AddUser(const std::string& login, const std::string& password, cons
 	std::ofstream users_file_(users_path_, std::ios_base::app);
 
 	users_file_ << profile_name << " - " << user_id << std::endl;
-	//LogIn(login, password, connection);
+	LogIn(login, password, connection);
 }
 
 void Server::AddMessage(const int sender_id, const int receiver_id, const std::string& message)
@@ -42,7 +42,6 @@ void Server::AddMessage(const int sender_id, const int receiver_id, const std::s
 	std::string path = "messages " + std::to_string(ids.first) + " & " + std::to_string(ids.second) + ".txt";
 	std::ofstream file(path, std::ios_base::app);
 	file << sender_name << ": " << message << std::endl;
-	std::cout << path << " -/- " << message << std::endl;
 }
 
 std::pair<int, int> Server::GetIdsFromUsersInRightOrder(const int sender_id, const int receiver_id) const
@@ -79,7 +78,7 @@ void Server::CommitQueryWork(const std::vector<std::string>& query_words, SOCKET
 	}
 	if (query_words[0] == "SendMSG")
 	{
-		SendMessageFromTo(std::stoi(query_words[1]), std::stoi(query_words[2]), query_words[3]);
+		SendMessageFromTo(query_words);
 	}
 	if (query_words[0] == "DelMSG")
 	{
@@ -92,6 +91,10 @@ void Server::CommitQueryWork(const std::vector<std::string>& query_words, SOCKET
 	if (query_words[0] == "Block")
 	{
 		BlockUser(std::stoi(query_words[1]), std::stoi(query_words[2]), connection);
+	}
+	if (query_words[0] == "Unblock")
+	{
+		UnblockUser(std::stoi(query_words[1]), std::stoi(query_words[2]), connection);
 	}
 	return;
 }
@@ -126,30 +129,35 @@ void Server::LogIn(const std::string& login, const std::string& password, SOCKET
 	send(connection, query.c_str(), msg_size, NULL);
 }
 
-void Server::SendMessageFromTo(const int id_sender, const int id_receiver, const std::string& message)
+void Server::SendMessageFromTo(const std::vector<std::string>& query)
 {
-	if (id_sender == id_receiver)
+	Message m({ query.begin() + 1, query.end() });
+
+	
+	
+	if (m.GetSenderId() == m.GetReceiverId())
 	{
 		return;
 	}
 	for (const auto& [user, user_address] : sockets_by_users_)
 	{
-		if (user.id == id_receiver)
+		if (user.id == m.GetReceiverId())
 		{
-			if (user.IsUserInBlackList(id_sender))
+			if (users_black_lists_[user.id].count(m.GetSenderId()))
 			{
 				return;
 			}
-			int msg_size = message.size();
+			std::string msg = m.Serialize();
+			int msg_size = msg.size();
 			Packet packettype = P_Message;
 
 			send(user_address, (char*)&packettype, sizeof(Packet), NULL);
 			send(user_address, (char*)&msg_size, sizeof(int), NULL);
-			send(user_address, message.c_str(), msg_size, NULL);
+			send(user_address, msg.c_str(), msg_size, NULL);
+			AddMessage(m.GetSenderId(), m.GetReceiverId(), m.GetMessageText());
 			return;
 		}
 	}
-	AddMessage(id_sender, id_receiver, message);
 	return;
 }
 
@@ -163,11 +171,13 @@ void Server::BlockUser(const int id_sender, const int other_id, SOCKET connectio
 		{
 			return user.id == other_id;
 		});
+
 	if (it_to_block == all_users_.end() || it_user == all_users_.end())
 	{
 		return;
 	}
-	
+
+	AddUserToUsersBlackList(it_user->id, it_to_block->id);
 	it_user->black_list.insert({ it_to_block->id, it_to_block->profile_name });
 	std::string query = "BlockRespond~" + it_to_block->profile_name + '~' + std::to_string(it_to_block->id) + '~';
 	int msg_size = query.size();
@@ -176,6 +186,32 @@ void Server::BlockUser(const int id_sender, const int other_id, SOCKET connectio
 	send(connection, (char*)&msg_size, sizeof(int), NULL);
 	send(connection, query.c_str(), msg_size, NULL);
 	
+}
+
+void Server::AddUserToUsersBlackList(const int where, const int other_id)
+{
+	users_black_lists_[where].insert(other_id);
+}
+
+void Server::UnblockUser(const int where, const int other_id, SOCKET connection)
+{
+	if (!users_black_lists_.count(where))
+	{
+		return;
+	}
+	if (!users_black_lists_.at(where).count(other_id))
+	{
+		return;
+	}
+	users_black_lists_.at(where).erase(other_id);
+
+	std::string query = "UnblockRespond~" + std::to_string(other_id) + '~';
+	int msg_size = query.size();
+	Packet packettype = P_CommandMessage;
+	send(connection, (char*)&packettype, sizeof(Packet), NULL);
+	send(connection, (char*)&msg_size, sizeof(int), NULL);
+	send(connection, query.c_str(), msg_size, NULL);
+
 }
 
 

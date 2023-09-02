@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <fstream>
 #include <map>
-
+#include "message.h"
 
 
 
@@ -50,9 +50,13 @@ public:
 
 	void LogIn(const std::string& login, const std::string& password, SOCKET connection);
 	
-	void SendMessageFromTo(const int id_sender, const int id_receiver, const std::string& message);
+	void SendMessageFromTo(const std::vector<std::string>& query);
 
 	void BlockUser(const int id_sender, const int other_id, SOCKET connection);
+
+	void AddUserToUsersBlackList(const int where, const int other_id);
+
+	void UnblockUser(const int where, const int other_id, SOCKET connection);
 
 private:
 
@@ -63,7 +67,7 @@ private:
 	std::map<std::pair<int, int>, std::deque<std::string>> messages_storage_;
 	std::set<std::string>all_logins_;
 	std::unordered_map<int, const User*> users_by_ids_;
-
+	std::unordered_map<int, std::set<int>> users_black_lists_;
 
 	void DeleteMessageHistory(const int user1_id, const int user2_id);
 

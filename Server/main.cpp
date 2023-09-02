@@ -87,9 +87,7 @@ void ClientHandler(SOCKET conn) {
 }
 
 
-int main() {
-
-	
+int main() {	
 
 	WSAData WSAData;
 	WORD DLLVersion = MAKEWORD(2, 1);
@@ -100,7 +98,7 @@ int main() {
 	
 	SOCKADDR_IN address{};
 	int size_of_address = sizeof(address);
-	address.sin_addr.s_addr = inet_addr("192.168.1.78");
+	address.sin_addr.s_addr = inet_addr("192.168.50.121");
 	address.sin_port = htons(1111);
 	address.sin_family = AF_INET;
 
