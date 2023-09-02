@@ -5,6 +5,7 @@
 #include "cryptography.h"
 #include "client.h"
 #include "CommandParsing.h"
+#include "message.h"
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #pragma warning(disable: 4996)
 
@@ -24,8 +25,6 @@ enum Packet
 bool ProcessPacket(Packet packettype)
 {
 	
-	
-
 	switch (packettype)
 	{
 	case P_Test:
@@ -54,6 +53,10 @@ bool ProcessPacket(Packet packettype)
 		{
 			client.AddPersonToBlackList(command[1], std::stoi(command[2]));
 		}
+		if (command[0] == "UnblockRespond")
+		{
+			client.UnblockUser(std::stoi(command[1]));
+		}
 		delete[] msg;
 		break;
 	}
@@ -65,7 +68,8 @@ bool ProcessPacket(Packet packettype)
 		msg[msg_size] = '\0';
 		recv(Connection, msg, msg_size, NULL);
 
-		std::cout << msg << std::endl;
+		Message m(ParseServerCommand(msg));
+		client.AddMessage(m.GetSenderId(), {m.GetSenderName() + ": " + m.GetMessageText() + "      " + m.GetTimeOfSending()});
 
 		delete[] msg;
 		break;
@@ -75,9 +79,7 @@ bool ProcessPacket(Packet packettype)
 		std::cout << "Unrecognized packet: " << packettype << std::endl;
 		break;
 	}
-	
 	}
-	
 	return true;
 }
 
@@ -99,6 +101,7 @@ int main()
 {
 	cryptography::GivenerEncrypter encrypter("cat");
 	
+
 	WSAData wsaData;
 	WORD DLLVersion = MAKEWORD(2, 1);
 	if (WSAStartup(DLLVersion, &wsaData) != 0) {
@@ -108,7 +111,7 @@ int main()
 
 	SOCKADDR_IN addr;
 	int sizeofaddr = sizeof(addr);
-	addr.sin_addr.s_addr = inet_addr("192.168.1.78");
+	addr.sin_addr.s_addr = inet_addr("192.168.50.121");
 	addr.sin_port = htons(1111);
 	addr.sin_family = AF_INET;
 
@@ -138,7 +141,7 @@ int main()
 		std::cout << "Add to black list____6" << std::endl;
 		std::cout << "Print black list_____7" << std::endl;
 		std::cout << "Print name___________8" << std::endl;
-
+		std::cout << "Unblock user_________9" << std::endl;
 		std::cin >> option;
 
 		switch (option)
@@ -177,13 +180,39 @@ int main()
 				break;
 			}
 			std::cout << "Who would you like to send your message to?" << std::endl;
-			std::string receiver;
+			int receiver;
 			std::cin >> receiver;
-			std::cout << "Print a message" << std::endl;
-			std::string message;
-			std::cin >> message;
+
 			
-			std::string query = "SendMSG~" + std::to_string(client.GetId()) + '~' + receiver + '~' + message + '~';
+			std::string message;
+
+			while (message != "~exit")
+			{
+				
+				client.GetMessagesHistory(std::cout, receiver);
+
+				std::cin >> message;
+				Message m = client.MakeMessage(receiver, message);
+				std::string query = "SendMSG~" + m.Serialize();
+				client.AddMessage(receiver, { m.GetSenderName() + ": " + m.GetMessageText() + "     " + m.GetTimeOfSending() });
+				int msg_size = query.size();
+				Packet packettype = P_CommandMessage;
+				send(Connection, (char*)&packettype, sizeof(Packet), NULL);
+				send(Connection, (char*)&msg_size, sizeof(int), NULL);
+				send(Connection, query.c_str(), msg_size, NULL);
+				Sleep(10);
+			}
+			break;
+		}
+		case 3:
+		{
+			std::cout << "Print id" << std::endl;
+			int id_to_erase;
+			std::cin >> id_to_erase;
+
+			client.ClearMessagesHistory(id_to_erase);
+
+			std::string query = "DelMSG~" + std::to_string(client.GetId()) + '~' + std::to_string(id_to_erase) + '~';
 			int msg_size = query.size();
 			Packet packettype = P_CommandMessage;
 			send(Connection, (char*)&packettype, sizeof(Packet), NULL);
@@ -246,8 +275,16 @@ int main()
 			std::cout << "Your name is " << client.GetName() << std::endl;
 			break;
 		}
-		}
+		case 9:
+		{
+			std::cout << "Print id" << std::endl;
+			int id;
+			std::cin >> id;
 
+
+		}
+		}
+		
 	}
 
 	system("pause");

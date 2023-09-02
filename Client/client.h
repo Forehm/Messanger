@@ -6,6 +6,7 @@
 #include <deque>
 #include <ostream>
 #include <map>
+#include "message.h"
 
 class Client
 {
@@ -25,9 +26,15 @@ public:
 
 	void AddPersonToBlackList(const std::string& name, const int friend_id);
 
+	void UnblockUser(const int user_id);
+
 	void AddMessage(const int interlocutor_id, std::string message);
 
+	void ClearMessagesHistory(const int id);
+
 	int GetId() const;
+
+	void GetMessagesHistory(std::ostream& out, const int interlocutor_id) const;
 
 	std::string GetName() const;
 	
@@ -36,6 +43,8 @@ public:
 	size_t GetBlackListSize() const;
 
 	void GetBlockedUsers(std::ostream& out) const;
+
+	Message MakeMessage(const int receicer_id, const std::string& message_text);
 
 private:
 	std::string name_;
