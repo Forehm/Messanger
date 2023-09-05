@@ -98,7 +98,7 @@ int main() {
 	
 	SOCKADDR_IN address{};
 	int size_of_address = sizeof(address);
-	address.sin_addr.s_addr = inet_addr("192.168.50.121");
+	address.sin_addr.s_addr = inet_addr("192.168.91.79");
 	address.sin_port = htons(1111);
 	address.sin_family = AF_INET;
 
