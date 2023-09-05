@@ -1,5 +1,6 @@
 ﻿#pragma comment(lib, "ws2_32.lib")
 #include <winsock2.h>
+#include <thread>
 #include <iostream>
 #include <string>
 #include "cryptography.h"
@@ -12,7 +13,6 @@
 
 SOCKET Connection;
 Client client;
-
 
 enum Packet
 {
@@ -86,7 +86,7 @@ bool ProcessPacket(Packet packettype)
 void ClientHandler(Client& client) {
 	Packet packettype;
 	while (true) {
-		char msg[256];
+		
 		recv(Connection, (char*)&packettype, sizeof(Packet), NULL);
 	
 		if (!ProcessPacket(packettype)) {
@@ -99,7 +99,9 @@ void ClientHandler(Client& client) {
 
 int main() 
 {
-	cryptography::GivenerEncrypter encrypter("cat");
+	std::string key = "cat";
+	cryptography::GivenerEncrypter encrypter(key);
+	
 	
 
 	WSAData wsaData;
@@ -111,7 +113,7 @@ int main()
 
 	SOCKADDR_IN addr;
 	int sizeofaddr = sizeof(addr);
-	addr.sin_addr.s_addr = inet_addr("192.168.50.121");
+	addr.sin_addr.s_addr = inet_addr("192.168.50.126");
 	addr.sin_port = htons(1111);
 	addr.sin_family = AF_INET;
 
@@ -131,7 +133,6 @@ int main()
 		std::string login;
 		std::string password;
 		std::string name;
-		int id;
 		int option = 0;
 		std::cout << "Add user_____________1" << std::endl;
 		std::cout << "Send message_________2" << std::endl;
@@ -160,6 +161,7 @@ int main()
 				{
 					std::cin >> password;
 				}
+				password = cryptography::hash_password(password);
 				std::cout << "Print your name" << std::endl;
 				std::cin >> name;
 				std::string query = "AddUser~" + login + '~' + password + '~' + name + '~';
@@ -192,6 +194,10 @@ int main()
 				client.GetMessagesHistory(std::cout, receiver);
 
 				std::cin >> message;
+				if (message == "~exit")
+				{
+					break;
+				}
 				Message m = client.MakeMessage(receiver, message);
 				std::string query = "SendMSG~" + m.Serialize();
 				client.AddMessage(receiver, { m.GetSenderName() + ": " + m.GetMessageText() + "     " + m.GetTimeOfSending() });
@@ -201,6 +207,7 @@ int main()
 				send(Connection, (char*)&msg_size, sizeof(int), NULL);
 				send(Connection, query.c_str(), msg_size, NULL);
 				Sleep(10);
+				
 			}
 			break;
 		}
@@ -234,6 +241,7 @@ int main()
 			{
 				std::cin >> password;
 			}
+			password = cryptography::hash_password(password);
 			std::string query = "LogIn~" + login + '~' + password + '~';
 			int msg_size = query.size();
 			Packet packettype = P_CommandMessage;
@@ -280,8 +288,7 @@ int main()
 			std::cout << "Print id" << std::endl;
 			int id;
 			std::cin >> id;
-
-
+			client.UnblockUser(id);
 		}
 		}
 		

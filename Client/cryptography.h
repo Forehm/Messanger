@@ -4,23 +4,14 @@
 #include <string>
 #include <vector>
 #include <ctime>
-
+#include <sstream>
+#include <iomanip>
 
 namespace cryptography
 {
+   
+	std::string hash_password(const std::string& password);
 
-
-	struct PasswordHash
-	{
-		uint64_t password_content_hash;
-		uint64_t password_length_hash;
-		uint64_t password_summary_hash;
-
-		bool operator == (const PasswordHash& other_hash) const;
-	};
-
-
-	PasswordHash HashPassword(const std::string& password);
 
 	bool HasMinLength(const std::string& password);
 
@@ -35,6 +26,8 @@ namespace cryptography
 		void FillSquare(std::string alphabet_copy);
 
 	public: 
+
+		GivenerEncrypter();
 
 		GivenerEncrypter(const std::string& key);
 

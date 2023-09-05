@@ -1,34 +1,93 @@
 #include "cryptography.h"
 
-bool cryptography::PasswordHash::operator==(const PasswordHash& other_hash) const
-{
-	return password_content_hash == other_hash.password_content_hash &&
-		password_length_hash == other_hash.password_length_hash &&
-		password_summary_hash == other_hash.password_summary_hash;
-}
 
-cryptography::PasswordHash cryptography::HashPassword(const std::string& password)
+
+std::string cryptography::hash_password(const std::string& password)
 {
-	cryptography::PasswordHash final_hash{};
-	const char* password_as_array = password.c_str();
-	const size_t size = password.size();
-	for (int i = 0; i < size; ++i)
-	{
-		final_hash.password_content_hash += static_cast<uint64_t>(password_as_array[i]);
-		final_hash.password_length_hash += static_cast<uint64_t>(password_as_array[i]);
-		final_hash.password_summary_hash += final_hash.password_content_hash * final_hash.password_length_hash;
+	// Инициализация хэш-алгоритма
+	uint32_t h0 = 0x67452301;
+	uint32_t h1 = 0xEFCDAB89;
+	uint32_t h2 = 0x98BADCFE;
+	uint32_t h3 = 0x10325476;
+	uint32_t h4 = 0xC3D2E1F0;
+
+	// Пароль, представленный в байтах
+	std::string message = password;
+
+	// Добавление битов "1" в конец пароля
+	message += '\x80';
+
+	// Добавление нулевых битов, чтобы длина пароля была кратна 512 битам
+	while ((message.length() * 8) % 512 != 448) {
+		message += '\x00';
 	}
-	for (int i = 0; i < size; ++i)
-	{
-		final_hash.password_content_hash *= static_cast<uint64_t>(password_as_array[i]) * static_cast<uint64_t>(password_as_array[i]);
+
+	// Добавление длины сообщения в конец, представленное в битах
+	uint64_t message_size_bits = password.length() * 8;
+	std::stringstream ss;
+	ss << std::hex << std::setfill('0') << std::setw(16) << message_size_bits;
+	std::string message_size_hex = ss.str();
+	for (int i = 0; i < 16; i += 2) {
+		uint8_t byte = std::stoi(message_size_hex.substr(i, 2), nullptr, 16);
+		message += byte;
 	}
-	final_hash.password_content_hash *= 64;
-	for (int i = 0; i < size; ++i)
-	{
-		final_hash.password_length_hash *= std::pow((uint64_t)password_as_array[i], size);
+
+	// Вычисление хэш-значения блока сообщения
+	for (size_t i = 0; i < message.length(); i += 64) {
+		uint32_t w[80];
+		uint32_t a = h0, b = h1, c = h2, d = h3, e = h4;
+
+		for (int t = 0; t < 80; t++) {
+			if (t < 16) {
+				w[t] = message[i + t * 4 + 0] << 24 |
+					message[i + t * 4 + 1] << 16 |
+					message[i + t * 4 + 2] << 8 |
+					message[i + t * 4 + 3];
+			}
+			else {
+				w[t] = (((w[t - 3] ^ w[t - 8] ^ w[t - 14] ^ w[t - 16]) << 1) |
+					((w[t - 3] ^ w[t - 8] ^ w[t - 14] ^ w[t - 16]) >> 31));
+			}
+
+			uint32_t f, k;
+			if (t < 20) {
+				f = (b & c) | ((~b) & d);
+				k = 0x5A827999;
+			}
+			else if (t < 40) {
+				f = b ^ c ^ d;
+				k = 0x6ED9EBA1;
+			}
+			else if (t < 60) {
+				f = (b & c) | (b & d) | (c & d);
+				k = 0x8F1BBCDC;
+			}
+			else {
+				f = b ^ c ^ d;
+				k = 0xCA62C1D6;
+			}
+
+			uint32_t temp = (((a << 5) | (a >> 27)) + f + e + k + w[t]) & 0xFFFFFFFF;
+			e = d;
+			d = c;
+			c = ((b << 30) | (b >> 2));
+			b = a;
+			a = temp;
+		}
+
+		h0 = (h0 + a) & 0xFFFFFFFF;
+		h1 = (h1 + b) & 0xFFFFFFFF;
+		h2 = (h2 + c) & 0xFFFFFFFF;
+		h3 = (h3 + d) & 0xFFFFFFFF;
+		h4 = (h4 + e) & 0xFFFFFFFF;
 	}
-	final_hash.password_summary_hash *= (final_hash.password_content_hash + final_hash.password_length_hash * size);
-	return final_hash;
+
+	// Формирование и возврат хэш-значения в шестнадцатеричном виде
+	std::stringstream result;
+	result << std::hex << std::setfill('0') << std::setw(8) << h0
+		<< std::setw(8) << h1 << std::setw(8) << h2
+		<< std::setw(8) << h3 << std::setw(8) << h4;
+	return result.str();
 }
 
 bool cryptography::HasMinLength(const std::string& password)
@@ -50,6 +109,10 @@ void cryptography::GivenerEncrypter::FillSquare(std::string alphabet_copy)
 		alphabet_copy.push_back(symbol_to_shift);
 		square_.push_back(alphabet_copy);
 	}
+}
+
+cryptography::GivenerEncrypter::GivenerEncrypter()
+{
 }
 
 cryptography::GivenerEncrypter::GivenerEncrypter(const std::string& key) : key_(key)
