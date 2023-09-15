@@ -46,9 +46,8 @@ void Server::AddMessage(const int sender_id, const int receiver_id, const std::s
 
 std::pair<int, int> Server::GetIdsFromUsersInRightOrder(const int sender_id, const int receiver_id) const
 {
-	int first_id = -1, second_id = -1;
-	first_id = sender_id;
-	second_id = receiver_id;
+	int first_id = sender_id;
+	int second_id = receiver_id;
 
 	if (first_id > second_id)
 	{
@@ -96,6 +95,10 @@ void Server::CommitQueryWork(const std::vector<std::string>& query_words, SOCKET
 	{
 		UnblockUser(std::stoi(query_words[1]), std::stoi(query_words[2]), connection);
 	}
+	if (query_words[0] == "AddFriend")
+	{
+		AddFriend(std::stoi(query_words[1]), std::stoi(query_words[2]), connection);
+	}
 	return;
 }
 
@@ -106,34 +109,23 @@ void Server::AddConnection(SOCKET connection)
 
 void Server::LogIn(const std::string& login, const std::string& password, SOCKET connection)
 {
+	std::string query = "IdErrorRespond~-1~";
 	for (const User& user : all_users_)
 	{
 		if (user.login == login && user.password == password)
 		{
 			sockets_by_users_[user] = connection;
-			std::string query = "UserDataRespond~" + std::to_string(user.id) + '~' + user.profile_name + '~';
-			int msg_size = query.size();
-			Packet packettype = P_CommandMessage;
-			send(connection, (char*)&packettype, sizeof(Packet), NULL);
-			send(connection, (char*)&msg_size, sizeof(int), NULL);
-			send(connection, query.c_str(), msg_size, NULL);
-
-			return;
+			query = "UserDataRespond~" + std::to_string(user.id) + '~' + user.profile_name + '~';
+			break;
 		}
 	}
-	std::string query = "IdErrorRespond~-1~";
-	int msg_size = query.size();
-    Packet packettype = P_CommandMessage;
-	send(connection, (char*)&packettype, sizeof(Packet), NULL);
-	send(connection, (char*)&msg_size, sizeof(int), NULL);
-	send(connection, query.c_str(), msg_size, NULL);
+	
+	SendCommandToConnection(query, connection);
 }
 
 void Server::SendMessageFromTo(const std::vector<std::string>& query)
 {
 	Message m({ query.begin() + 1, query.end() });
-
-	
 	
 	if (m.GetSenderId() == m.GetReceiverId())
 	{
@@ -180,12 +172,7 @@ void Server::BlockUser(const int id_sender, const int other_id, SOCKET connectio
 	AddUserToUsersBlackList(it_user->id, it_to_block->id);
 	it_user->black_list.insert({ it_to_block->id, it_to_block->profile_name });
 	std::string query = "BlockRespond~" + it_to_block->profile_name + '~' + std::to_string(it_to_block->id) + '~';
-	int msg_size = query.size();
-	Packet packettype = P_CommandMessage;
-	send(connection, (char*)&packettype, sizeof(Packet), NULL);
-	send(connection, (char*)&msg_size, sizeof(int), NULL);
-	send(connection, query.c_str(), msg_size, NULL);
-	
+	SendCommandToConnection(query, connection);	
 }
 
 void Server::AddUserToUsersBlackList(const int where, const int other_id)
@@ -206,12 +193,34 @@ void Server::UnblockUser(const int where, const int other_id, SOCKET connection)
 	users_black_lists_.at(where).erase(other_id);
 
 	std::string query = "UnblockRespond~" + std::to_string(other_id) + '~';
-	int msg_size = query.size();
+	SendCommandToConnection(query, connection);
+}
+
+void Server::AddFriend(const int where, const int other_id, SOCKET connection)
+{
+	auto it_user = std::find_if(all_users_.begin(), all_users_.end(), [where](const User& u) {
+		return u.id == where;
+		});
+	auto it_friend = std::find_if(all_users_.begin(), all_users_.end(), [other_id](const User& u) {
+		return u.id == other_id;
+		});
+
+	if (it_user != all_users_.end() && it_friend != all_users_.end())
+	{
+		it_user->friends.insert(other_id);
+
+		std::string query = "AddFriendRespond~" + std::to_string(other_id) + '~' + it_friend->profile_name + '~';
+		SendCommandToConnection(query, connection);
+	}	
+}
+
+void Server::SendCommandToConnection(const std::string& command, SOCKET connection) const
+{
+	int msg_size = command.size();
 	Packet packettype = P_CommandMessage;
 	send(connection, (char*)&packettype, sizeof(Packet), NULL);
 	send(connection, (char*)&msg_size, sizeof(int), NULL);
-	send(connection, query.c_str(), msg_size, NULL);
-
+	send(connection, command.c_str(), msg_size, NULL);
 }
 
 

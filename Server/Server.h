@@ -58,6 +58,10 @@ public:
 
 	void UnblockUser(const int where, const int other_id, SOCKET connection);
 
+	void AddFriend(const int where, const int other_id, SOCKET connection);
+
+	void SendCommandToConnection(const std::string& command, SOCKET connection) const;
+
 private:
 
 	static int id;
