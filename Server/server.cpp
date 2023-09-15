@@ -19,7 +19,7 @@ void Server::SaveMessagesHistory(const std::pair<int, int>& users)
 
 void Server::AddUser(const std::string& login, const std::string& password, const std::string& profile_name, SOCKET connection)
 {
-	int user_id = ++id;
+	int user_id = ++id_;
 	all_users_.push_back({ user_id, login, password, profile_name });
 	sockets_by_users_[all_users_.back()] = connection;
 	all_logins_.insert(login);
@@ -242,4 +242,4 @@ bool User::operator<(const User& another) const
 
 
 
-int Server::id = 0;
+int Server::id_ = 0;

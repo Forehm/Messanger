@@ -64,7 +64,7 @@ public:
 
 private:
 
-	static int id;
+	static int id_;
 	std::deque<SOCKET>connections_;
 	std::deque<User> all_users_;
 	std::map<User, SOCKET> sockets_by_users_;
