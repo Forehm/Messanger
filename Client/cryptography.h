@@ -12,9 +12,7 @@ namespace cryptography
    
 	std::string hash_password(const std::string& password);
 
-
 	bool HasMinLength(const std::string& password);
-
 
 	class GivenerEncrypter
 	{
