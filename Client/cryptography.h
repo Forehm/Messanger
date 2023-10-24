@@ -24,7 +24,6 @@ namespace cryptography
 		void FillSquare(std::string alphabet_copy);
 
 	public: 
-
 		GivenerEncrypter();
 
 		GivenerEncrypter(const std::string& key);
