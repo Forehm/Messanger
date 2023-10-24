@@ -29,7 +29,6 @@ public:
 	std::string GetTimeOfSending() const;
 
 private:
-
 	void Deserialize(const std::vector<std::string>& parts);
 
 	std::string message_;
