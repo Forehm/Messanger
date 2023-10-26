@@ -49,8 +49,7 @@ void Client::UnblockUser(const int user_id)
 }
 
 void Client::AddMessage(const int interlocutor_id, std::string message)
-{
-	messages_[interlocutor_id].push_back(message);
+{	messages_[interlocutor_id].push_back(message);
 }
 
 void Client::ClearMessagesHistory(const int id)
