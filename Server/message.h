@@ -10,6 +10,7 @@ const int DATE_COUNTDOWN_YEAR = 1900;
 class Message
 {
 public:
+
 	Message(const int sender_id, const int receiver_id, const std::string& sender_name, const std::string& message);
 
 	Message(const std::vector<std::string>& parts);
