@@ -82,7 +82,6 @@ private:
 	void AddMessage(const int sender_id, const int receiver_id, const std::string& message);
 
 	std::pair<int, int> GetIdsFromUsersInRightOrder(const int sender_id, const int receiver_id) const;
-
 };
 
 
