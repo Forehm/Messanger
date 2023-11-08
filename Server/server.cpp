@@ -2,6 +2,8 @@
 #include <mutex>
 
 
+
+
 void Server::SaveMessagesHistory(const std::pair<int, int>& users)
 {
 	if (users_by_ids_.count(users.first) && users_by_ids_.count(users.second))
