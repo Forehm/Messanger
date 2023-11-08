@@ -11,7 +11,7 @@
 #pragma warning(disable: 4996)
 
 
-SOCKET Connection;
+SOCKET Connection; ///to delete
 Client client;
 
 enum Packet
