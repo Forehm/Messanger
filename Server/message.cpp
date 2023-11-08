@@ -1,5 +1,6 @@
 #include "message.h"
 
+
 Message::Message(const int sender_id, const int receiver_id, const std::string& sender_name, const std::string& message) :
     message_(message), sender_name_(sender_name), sender_id_(sender_id), receiver_id_(receiver_id)
 {
