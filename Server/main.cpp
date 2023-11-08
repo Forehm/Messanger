@@ -33,9 +33,12 @@ std::vector<std::string> ParseQueryIntoWords(const std::string& query)
 }
 
 
-Server server;
+Server server; //to delete
 int Counter = 0;
  
+
+
+
 
 
 
