@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package proto;
+
+message UserData
+{
+string login = 1;
+string name = 2;
+string password = 3;
+uint32 id = 4;
+repeated uint32 black_list = 5;
+repeated uint32 friend_list = 6;
+repeated uint32 dialogs_with = 7;
+}

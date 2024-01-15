@@ -11,20 +11,14 @@
 #include <fstream>
 #include <map>
 #include "message.h"
-
+#include "user_data.pb.h"
 
 
 
 
 struct User
 {
-	int id = -1;
-	std::string login = "";
-	std::string password = "";
-	std::string profile_name = "";
-	std::set<int> conversation_with;
-	std::set<int> friends;
-	std::map<int, std::string> black_list;
+	proto::UserData user_data;
 
 	bool IsUserInBlackList(const int id) const;
 

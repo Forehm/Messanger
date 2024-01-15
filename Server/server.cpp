@@ -114,10 +114,10 @@ void Server::LogIn(const std::string& login, const std::string& password, SOCKET
 	std::string query = "IdErrorRespond~-1~";
 	for (const User& user : all_users_)
 	{
-		if (user.login == login && user.password == password)
+		if (user.user_data.login() == login && user.user_data.password() == password)
 		{
 			sockets_by_users_[user] = connection;
-			query = "UserDataRespond~" + std::to_string(user.id) + '~' + user.profile_name + '~';
+			query = "UserDataRespond~" + std::to_string(user.user_data.id()) + '~' + user.user_data.profile_name() + '~';
 			break;
 		}
 	}
@@ -135,9 +135,9 @@ void Server::SendMessageFromTo(const std::vector<std::string>& query)
 	}
 	for (const auto& [user, user_address] : sockets_by_users_)
 	{
-		if (user.id == m.GetReceiverId())
+		if (user.user_data.id() == m.GetReceiverId())
 		{
-			if (users_black_lists_[user.id].count(m.GetSenderId()))
+			if (users_black_lists_[user.user_data.id()].count(m.GetSenderId()))
 			{
 				return;
 			}
@@ -159,11 +159,11 @@ void Server::BlockUser(const int id_sender, const int other_id, SOCKET connectio
 {
 	auto it_user = std::find_if(all_users_.begin(), all_users_.end(), [id_sender](const User& user)
 		{
-			return user.id == id_sender;
+			return user.user_data.id() == id_sender;
 		});
 	auto it_to_block = std::find_if(all_users_.begin(), all_users_.end(), [other_id](const User& user)
 		{
-			return user.id == other_id;
+			return user.user_data.id() == other_id;
 		});
 
 	if (it_to_block == all_users_.end() || it_user == all_users_.end())
@@ -171,7 +171,7 @@ void Server::BlockUser(const int id_sender, const int other_id, SOCKET connectio
 		return;
 	}
 
-	AddUserToUsersBlackList(it_user->id, it_to_block->id);
+	AddUserToUsersBlackList(it_user->user_data.id(), it_to_block->user_data.id());
 	it_user->black_list.insert({ it_to_block->id, it_to_block->profile_name });
 	std::string query = "BlockRespond~" + it_to_block->profile_name + '~' + std::to_string(it_to_block->id) + '~';
 	SendCommandToConnection(query, connection);	
@@ -201,16 +201,16 @@ void Server::UnblockUser(const int where, const int other_id, SOCKET connection)
 void Server::AddFriend(const int where, const int other_id, SOCKET connection)
 {
 	auto it_user = std::find_if(all_users_.begin(), all_users_.end(), [where](const User& u) {
-		return u.id == where;
+		return u.user_data.id() == where;
 		});
 	auto it_friend = std::find_if(all_users_.begin(), all_users_.end(), [other_id](const User& u) {
-		return u.id == other_id;
+		return u.user_data.id() == other_id;
 		});
 
 	if (it_user != all_users_.end() && it_friend != all_users_.end())
 	{
-		it_user->friends.insert(other_id);
-
+		//it_user->user_data.friends_list.insert(other_id);
+		*it_user->user_data.mutable_friend_list()->Add() = other_id;
 		std::string query = "AddFriendRespond~" + std::to_string(other_id) + '~' + it_friend->profile_name + '~';
 		SendCommandToConnection(query, connection);
 	}	
@@ -228,18 +228,19 @@ void Server::SendCommandToConnection(const std::string& command, SOCKET connecti
 
 bool User::IsUserInBlackList(const int id) const
 {
-	return black_list.count(id);
+	auto it = std::find_if(user_data.black_list().begin(), user_data.black_list().end(), id);
+	return it != user_data.black_list().end();
 }
 
 bool User::operator!=(const User& another) const
 {
-	return ((this->id != another.id) && (this->login != another.login) && (this->password != another.password)
-		&& (this->profile_name != another.profile_name));
+	return ((user_data.id() != another.user_data.id()) && (user_data.login() != another.user_data.login()) &&
+		(user_data.password() != another.user_data.password()));
 }
 
 bool User::operator<(const User& another) const
 {
-	return this->id < another.id;
+	return user_data.id() < another.user_data.id();
 }
 
 
