@@ -7,7 +7,7 @@ It has only console interface now, but it is temporary
 
 ### Description:
 There are two applications: server and client. They are basically the same but they are a bit different;
-
+The work of the messanger is set by sending different messages (commands) from the client application to the server one.
 
 
 Client application interface is just to debug the server app now. Client application will definitely have another realization and another structure with an interface and other features! 
