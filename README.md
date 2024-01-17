@@ -9,7 +9,7 @@ It has only console interface now, but it is temporary
 There are two applications: server and client. They are basically the same but they are a bit different;
 Client application is for the users. It consists of the following classes:
 ##### 1) User
-##### 2)
+##### 2) Message
 ##### 3) 
 
 
