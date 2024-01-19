@@ -7,7 +7,7 @@
 #include <ostream>
 #include <map>
 #include "message.h"
-
+#include "user_data.pb.h"
 
 
 
@@ -50,13 +50,10 @@ public:
 	Message MakeMessage(const int receicer_id, const std::string& message_text);
 
 private:
-	std::string name_;
-	std::string login_;
-	std::string password_;
-	int id_ = -1;
+
+	proto::UserData user_data_;
+
 	SOCKET address_;
-	std::set<int> dialogues_with_;
-	std::set<int> friends_;
-	std::map<std::string, int> black_list_;
+	///std::map<std::string, int> black_list_;
 	std::unordered_map<int, std::deque<std::string>> messages_;
 };
