@@ -44,7 +44,7 @@ public:
 
 	void LogIn(const std::string& login, const std::string& password, SOCKET connection);
 	
-	void SendMessageFromTo(const std::vector<std::string>& query);
+	void SendMessageFromTo(const Message& message);
 
 	void BlockUser(const int id_sender, const int other_id, SOCKET connection);
 
