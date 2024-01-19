@@ -1,0 +1,13 @@
+syntax = "proto3" ;
+
+package proto; 
+
+message MessageData
+{
+	string message = 1;
+	uint32 sender_id = 2;
+	string sender_name = 3;
+	uint32 receiver_id = 4;
+	string date_of_sending = 5;
+	string time_of_sending = 6;
+}

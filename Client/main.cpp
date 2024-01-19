@@ -68,7 +68,7 @@ bool ProcessPacket(Packet packettype)
 		msg[msg_size] = '\0';
 		recv(Connection, msg, msg_size, NULL);
 
-		Message m(ParseServerCommand(msg));
+		Message m;
 		client.AddMessage(m.GetSenderId(), {m.GetSenderName() + ": " + m.GetMessageText() + "      " + m.GetTimeOfSending()});
 
 		delete[] msg;
@@ -198,8 +198,8 @@ int main()
 				{
 					break;
 				}
-				Message m = client.MakeMessage(receiver, message);
-				std::string query = "SendMSG~" + m.Serialize();
+				Message m;
+				std::string query = "SendMSG~" + m.message_data.message();
 				client.AddMessage(receiver, { m.GetSenderName() + ": " + m.GetMessageText() + "     " + m.GetTimeOfSending() });
 				int msg_size = query.size();
 				Packet packettype = P_CommandMessage;
