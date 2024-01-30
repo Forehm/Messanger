@@ -6,7 +6,7 @@ There are two apps: server application and the client application;
 It has only console interface now, but it is temporary
 
 ### Description:
-There are two applications: server and client. They are basically the same but they are a bit different;
+There are two applications: server and client. They are basically the same but they are a bit different: client application contains;
 The work of the messanger is set by sending different messages (commands) from the client application to the server one.
 
 
