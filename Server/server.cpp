@@ -8,7 +8,7 @@ void Server::SaveMessagesHistory(const std::pair<int, int>& users)
 {
 	if (users_by_ids_.count(users.first) && users_by_ids_.count(users.second))
 	{
-		std::string path = users_by_ids_[users.first]->user_data.name() + " , " + users_by_ids_[users.second]->user_data.name();
+		std::string path = users_by_ids_[users.first]->GetName() + " , " + users_by_ids_[users.second]->GetName();
 		std::ofstream file;
 		file.open(path);
 		for (const auto& message : messages_storage_[{users.first, users.second}])
@@ -23,10 +23,10 @@ void Server::AddUser(const std::string& login, const std::string& password, cons
 {
 	int user_id = ++id_;
 	User user; 
-	user.user_data.set_name(profile_name);
-	user.user_data.set_login(login);
-	user.user_data.set_password(password);
-	user.user_data.set_id(user_id);
+	user.SetName(profile_name);
+	user.Setlogin(login);
+	user.SetPassword(password);
+	user.SetId(user_id);
 
 	all_users_.push_back(user);
 	sockets_by_users_[all_users_.back()] = connection;
@@ -45,7 +45,7 @@ void Server::AddMessage(const int sender_id, const int receiver_id, const std::s
 	std::pair ids = GetIdsFromUsersInRightOrder(sender_id, receiver_id);
 	messages_storage_[{ids.first, ids.second}].push_back(message);
 
-	std::string sender_name = users_by_ids_[sender_id]->user_data.name();
+	std::string sender_name = users_by_ids_[sender_id]->GetName();
 
 	std::string path = "messages " + std::to_string(ids.first) + " & " + std::to_string(ids.second) + ".txt";
 	std::ofstream file(path, std::ios_base::app);
@@ -120,10 +120,10 @@ void Server::LogIn(const std::string& login, const std::string& password, SOCKET
 	std::string query = "IdErrorRespond~-1~";
 	for (const User& user : all_users_)
 	{
-		if (user.user_data.login() == login && user.user_data.password() == password)
+		if (user.GetLogin() == login && user.GetPassword() == password)
 		{
 			sockets_by_users_[user] = connection;
-			query = "UserDataRespond~" + std::to_string(user.user_data.id()) + '~' + user.user_data.name() + '~';
+			query = "UserDataRespond~" + std::to_string(user.GetId()) + '~' + user.GetName() + '~';
 			break;
 		}
 	}
@@ -140,9 +140,9 @@ void Server::SendMessageFromTo(const Message& message)
 	}
 	for (const auto& [user, user_address] : sockets_by_users_)
 	{
-		if (user.user_data.id() == message.message_data.receiver_id())
+		if (user.GetId() == message.message_data.receiver_id())
 		{
-			if (users_black_lists_[user.user_data.id()].count(message.message_data.sender_id()))
+			if (users_black_lists_[user.GetId()].count(message.message_data.sender_id()))
 			{
 				return;
 			}
@@ -164,11 +164,11 @@ void Server::BlockUser(const int id_sender, const int other_id, SOCKET connectio
 {
 	auto it_user = std::find_if(all_users_.begin(), all_users_.end(), [id_sender](const User& user)
 		{
-			return user.user_data.id() == id_sender;
+			return user.GetId() == id_sender;
 		});
 	auto it_to_block = std::find_if(all_users_.begin(), all_users_.end(), [other_id](const User& user)
 		{
-			return user.user_data.id() == other_id;
+			return user.GetId() == other_id;
 		});
 
 	if (it_to_block == all_users_.end() || it_user == all_users_.end())
@@ -176,10 +176,10 @@ void Server::BlockUser(const int id_sender, const int other_id, SOCKET connectio
 		return;
 	}
 
-	AddUserToUsersBlackList(it_user->user_data.id(), it_to_block->user_data.id());
-	it_user->user_data.add_black_list(it_to_block->user_data.id());
+	AddUserToUsersBlackList(it_user->GetId(), it_to_block->GetId());
+	it_user->AddToBlackList(it_to_block->GetId());
 
-	std::string query = "BlockRespond~" + it_to_block->user_data.name() + '~' + std::to_string(it_to_block->user_data.id()) + '~';
+	std::string query = "BlockRespond~" + it_to_block->GetName() + '~' + std::to_string(it_to_block->GetId()) + '~';
 	SendCommandToConnection(query, connection);	
 }
 
@@ -207,17 +207,17 @@ void Server::UnblockUser(const int where, const int other_id, SOCKET connection)
 void Server::AddFriend(const int where, const int other_id, SOCKET connection)
 {
 	auto it_user = std::find_if(all_users_.begin(), all_users_.end(), [where](const User& u) {
-		return u.user_data.id() == where;
+		return u.GetId() == where;
 		});
 	auto it_friend = std::find_if(all_users_.begin(), all_users_.end(), [other_id](const User& u) {
-		return u.user_data.id() == other_id;
+		return u.GetId() == other_id;
 		});
 
 	if (it_user != all_users_.end() && it_friend != all_users_.end())
 	{
 		//it_user->user_data.friends_list.insert(other_id);
-		*it_user->user_data.mutable_friend_list()->Add() = other_id;
-		std::string query = "AddFriendRespond~" + std::to_string(other_id) + '~' + it_friend->user_data.name() + '~';
+		it_user->AddToBlackList(other_id);
+		std::string query = "AddFriendRespond~" + std::to_string(other_id) + '~' + it_friend->GetName() + '~';
 		SendCommandToConnection(query, connection);
 	}	
 }
@@ -234,19 +234,64 @@ void Server::SendCommandToConnection(const std::string& command, SOCKET connecti
 
 bool User::IsUserInBlackList(const int id) const
 {
-	auto it = std::find(user_data.black_list().begin(), user_data.black_list().end(), id);
-	return it != user_data.black_list().end();
+	auto it = std::find(m_UserData.black_list().begin(), m_UserData.black_list().end(), id);
+	return it != m_UserData.black_list().end();
 }
 
 bool User::operator!=(const User& another) const
 {
-	return ((user_data.id() != another.user_data.id()) && (user_data.login() != another.user_data.login()) &&
-		(user_data.password() != another.user_data.password()));
+	return ((GetId() != another.GetId()) && (m_UserData.login() != another.m_UserData.login()) &&
+		(m_UserData.password() != another.m_UserData.password()));
 }
 
 bool User::operator<(const User& another) const
 {
-	return user_data.id() < another.user_data.id();
+	return GetId() < another.GetId();
+}
+
+uint32_t User::GetId() const
+{
+	return m_UserData.id();
+}
+
+std::string User::GetLogin() const
+{
+	return m_UserData.login();
+}
+
+std::string User::GetName() const
+{
+	return m_UserData.name();
+}
+
+std::string User::GetPassword() const
+{
+	return m_UserData.password();
+}
+
+void User::SetId(const uint32_t id)
+{
+	m_UserData.set_id(id);
+}
+
+void User::Setlogin(const std::string& login)
+{
+	m_UserData.set_login(login);
+}
+
+void User::SetName(const std::string& name)
+{
+	m_UserData.set_name(name);
+}
+
+void User::SetPassword(const std::string& password)
+{
+	m_UserData.set_password(password);
+}
+
+void User::AddToBlackList(const uint32_t id)
+{
+	m_UserData.add_black_list(id);
 }
 
 

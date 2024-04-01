@@ -16,15 +16,28 @@
 
 
 
-struct User
+class User
 {
-	proto::UserData user_data;
-
+public:
 	bool IsUserInBlackList(const int id) const;
-
 	bool operator != (const User& another) const;
-
 	bool operator < (const User& another) const;
+
+	uint32_t GetId() const;
+	std::string GetLogin() const;
+	std::string GetName() const;
+	std::string GetPassword() const;
+
+	void SetId(const uint32_t id);
+	void Setlogin(const std::string& login);
+	void SetName(const std::string& name);
+	void SetPassword(const std::string& password);
+
+	void AddToBlackList(const uint32_t id);
+
+private:
+	proto::UserData m_UserData;
+
 };
 
 enum Packet {
