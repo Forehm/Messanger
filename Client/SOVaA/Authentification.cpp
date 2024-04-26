@@ -21,6 +21,8 @@ AuthentificationDlg::AuthentificationDlg(CWnd* pParent) : CDialogEx(IDD_AUTHENTI
 BOOL AuthentificationDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
+	HICON hIcon = LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_ICON1));
+	SetIcon(hIcon, FALSE);
 	return TRUE;
 }
 
@@ -44,7 +46,4 @@ void AuthentificationDlg::OnPaint()
 	CDialogEx::OnPaint();
 }
 
-HCURSOR AuthentificationDlg::OnQueryDragIcon()
-{
-	return static_cast<HCURSOR>(m_hIcon);
-}
+
