@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "framework.h"
-#include "MessangerClient.h"
-#include "MessangerClientDlg.h"
+#include "SOVaA.h"
+#include "SOVaADlg.h"
 #include "afxdialogex.h"
 
 #ifdef _DEBUG
@@ -68,9 +68,6 @@ BOOL CMessangerClientDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
 
-	// Добавление пункта "О программе..." в системное меню.
-
-	// IDM_ABOUTBOX должен быть в пределах системной команды.
 	ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
 	ASSERT(IDM_ABOUTBOX < 0xF000);
 
@@ -88,14 +85,10 @@ BOOL CMessangerClientDlg::OnInitDialog()
 		}
 	}
 
-	// Задает значок для этого диалогового окна.  Среда делает это автоматически,
-	//  если главное окно приложения не является диалоговым
-	SetIcon(m_hIcon, TRUE);			// Крупный значок
-	SetIcon(m_hIcon, FALSE);		// Мелкий значок
+	HICON hIcon = LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_ICON1));
+	SetIcon(hIcon, FALSE);
 
-	// TODO: добавьте дополнительную инициализацию
-
-	return TRUE;  // возврат значения TRUE, если фокус не передан элементу управления
+	return TRUE;
 }
 
 void CMessangerClientDlg::OnSysCommand(UINT nID, LPARAM lParam)

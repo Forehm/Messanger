@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "framework.h"
-#include "MessangerClient.h"
-#include "MessangerClientDlg.h"
+#include "SOVaA.h"
+#include "SOVaADlg.h"
 #include "Authentification.h"
 
 #ifdef _DEBUG

@@ -14,7 +14,6 @@ private:
 public:
 	CMessangerClientDlg(CWnd* pParent = nullptr);	
 
-
 protected:
 	
 
