@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Authentification.h"
+#include <string>
 
 IMPLEMENT_DYNAMIC(AuthentificationDlg, CDialogEx)
 
@@ -15,8 +16,10 @@ void AuthentificationDlg::DoDataExchange(CDataExchange* pDX)
 	CDialogEx::DoDataExchange(pDX);
 }
 
-AuthentificationDlg::AuthentificationDlg(CWnd* pParent) : CDialogEx(IDD_AUTHENTIFICATION_DIALOG, pParent)
+AuthentificationDlg::AuthentificationDlg(CWnd* pParent, Client& client) : CDialogEx(IDD_AUTHENTIFICATION_DIALOG, pParent),
+m_client(client)
 {
+	
 }
 
 BOOL AuthentificationDlg::OnInitDialog()
@@ -36,12 +39,26 @@ void AuthentificationDlg::OnSysCommand(UINT nID, LPARAM lParam)
 
 void AuthentificationDlg::SignUp()
 {
-	AfxMessageBox(L"Регистрация");
+	Packet test_packet = P_Test;
+	send(*m_client.GetConnection(), (char*)&test_packet, sizeof(Packet), NULL);
+	std::string command = "register";
+	int msg_size = command.size();
+	Packet packettype = P_Message;
+	send(*m_client.GetConnection(), (char*)&packettype, sizeof(Packet), NULL);
+	send(*m_client.GetConnection(), (char*)&msg_size, sizeof(int), NULL);
+	send(*m_client.GetConnection(), command.c_str(), msg_size, NULL);
 }
 
 void AuthentificationDlg::LogIn()
 {
-	AfxMessageBox(L"Вход");
+	Packet test_packet = P_Test;
+	send(*m_client.GetConnection(), (char*)&test_packet, sizeof(Packet), NULL);
+	std::string command = "login";
+	int msg_size = command.size();
+	Packet packettype = P_Message;
+	send(*m_client.GetConnection(), (char*)&packettype, sizeof(Packet), NULL);
+	send(*m_client.GetConnection(), (char*)&msg_size, sizeof(int), NULL);
+	send(*m_client.GetConnection(), command.c_str(), msg_size, NULL);
 }
 
 void AuthentificationDlg::OnPaint()

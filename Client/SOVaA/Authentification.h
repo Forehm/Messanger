@@ -1,5 +1,6 @@
 #pragma once
 #include "Resource.h"
+#include "Client.h"
 
 class AuthentificationDlg : public CDialogEx
 {
@@ -12,12 +13,9 @@ private:
 
 
 public:
-	AuthentificationDlg(CWnd* pParent);
-
-
+	AuthentificationDlg(CWnd* pParent, Client& client);
 
 protected:
-
 
 	virtual BOOL OnInitDialog();
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
@@ -44,4 +42,6 @@ protected:
 		ReleaseDC(pDC);
 	}
 	DECLARE_MESSAGE_MAP()
+private:
+	Client&							m_client;
 };

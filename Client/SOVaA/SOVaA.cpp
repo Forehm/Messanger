@@ -3,14 +3,16 @@
 #include "SOVaA.h"
 #include "SOVaADlg.h"
 #include "Authentification.h"
-#include <boost/asio.hpp>
+#include <WinSock2.h>
 #include <iostream>
 #include <thread>
 #include <windows.h>
+#include "processing_msg.h"
+
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#pragma warning(disable: 4996)
 
 using namespace std;
-using namespace boost::asio;
-using namespace boost::asio::ip;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -21,7 +23,6 @@ BEGIN_MESSAGE_MAP(CMessangerClientApp, CWinApp)
 	ON_COMMAND(ID_HELP, &CWinApp::OnHelp)
 END_MESSAGE_MAP()
 
-io_service io;
 
 CMessangerClientApp::CMessangerClientApp()
 {
@@ -31,59 +32,64 @@ CMessangerClientApp::CMessangerClientApp()
 
 CMessangerClientApp theApp;
 
-void receiveMessages(tcp::socket& socket) {
-	try {
-		while (true) {
-			char data[1024];
-			size_t length = socket.read_some(buffer(data, 1024));
 
-			if (length > 0) {
-				Beep(500, 300);
-			}
-		}
-	}
-	catch (std::exception& e) {
-		std::cerr << "Exception in thread: " << e.what() << std::endl;
-	}
-}
+
 
 
 BOOL CMessangerClientApp::InitInstance()
 {
-
 	INITCOMMONCONTROLSEX InitCtrls;
 	InitCtrls.dwSize = sizeof(InitCtrls);
-
 	InitCtrls.dwICC = ICC_WIN95_CLASSES;
 	InitCommonControlsEx(&InitCtrls);
 
 	CWinApp::InitInstance();
-
-
 	AfxEnableControlContainer();
 
 	CShellManager *pShellManager = new CShellManager;
-
 	CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(CMFCVisualManagerWindows));
 
-	AuthentificationDlg authentification_dlg(NULL);
-	authentification_dlg.DoModal();
+	//==============================================================================///
+
+	Client client;
 
 
-	tcp::socket socket(io);
-	socket.connect(tcp::endpoint(address::from_string("192.168.50.126"), 9999));
-
-	// Создание потока для приема сообщений
-	std::thread receiverThread(receiveMessages, std::ref(socket));
 	
+	WSAData wsaData;
+	WORD DLLVersion = MAKEWORD(2, 1);
+	if (WSAStartup(DLLVersion, &wsaData) != 0) {
+		std::cout << "Error" << std::endl;
+		exit(1);
+	}
+
+	SOCKADDR_IN addr;
+	int sizeofaddr = sizeof(addr);
+	addr.sin_addr.s_addr = inet_addr("192.168.50.126");
+	addr.sin_port = htons(1111);
+	addr.sin_family = AF_INET;
+
+	SOCKET connection = socket(AF_INET, SOCK_STREAM, NULL);
+	if (connect(connection, (SOCKADDR*)&addr, sizeof(addr)) != 0)
+		return 1;
+	
+	client.AddConnection(&connection);
+
+	std::thread receiverThread(ClientHandler, std::ref(client));
+
+	AuthentificationDlg authentification_dlg(NULL, client);
+	int hr = authentification_dlg.DoModal();
+	if (hr == WA_CLICKACTIVE)
+	{
+		return FALSE;
+	}
 
 
 	CMessangerClientDlg dlg;
 	m_pMainWnd = &dlg;
 	INT_PTR nResponse = dlg.DoModal();
 
+	//==============================================================================///
 
-	receiverThread.join();
 	if (!pShellManager)
 		delete pShellManager;
 
