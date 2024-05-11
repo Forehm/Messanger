@@ -6,8 +6,9 @@ IMPLEMENT_DYNAMIC(AuthentificationDlg, CDialogEx)
 
 BEGIN_MESSAGE_MAP(AuthentificationDlg, CDialogEx)
 	ON_WM_ERASEBKGND()
-	ON_BN_CLICKED(IDC_LOG_IN_BUTTON, LogIn)
-	ON_BN_CLICKED(IDC_REGISTRATION_BUTTON, SignUp)
+	ON_BN_CLICKED(IDC_MAIN_LOG_IN_BUTTON, OnButtonLogIn)
+	ON_BN_CLICKED(IDC_MAIN_REGISTRATION_BUTTON, OnButtonSignUp)
+	ON_BN_CLICKED(IDC_AUTH_BACK_BUTTON, OnBackButton)
 	ON_WM_CTLCOLOR()
 END_MESSAGE_MAP()
 
@@ -28,6 +29,13 @@ BOOL AuthentificationDlg::OnInitDialog()
 	HICON hIcon = LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_ICON1));
 	SetIcon(hIcon, FALSE);
 
+	GetDlgItem(IDC_LOGIN_EDIT)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_PASSWORD_EDIT)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_LOG_IN_BUTTON)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_NICKNAME_EDIT)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_SIGN_UP_BUTTON)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_AUTH_BACK_BUTTON)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_PASSWORD_REPEAT_EDIT)->ShowWindow(SW_HIDE);
 
 	return TRUE;
 }
@@ -37,28 +45,42 @@ void AuthentificationDlg::OnSysCommand(UINT nID, LPARAM lParam)
 	CDialogEx::OnSysCommand(nID, lParam);
 }
 
-void AuthentificationDlg::SignUp()
+void AuthentificationDlg::OnButtonSignUp()
 {
-	Packet test_packet = P_Test;
-	send(*m_client.GetConnection(), (char*)&test_packet, sizeof(Packet), NULL);
-	std::string command = "register";
-	int msg_size = command.size();
-	Packet packettype = P_Message;
-	send(*m_client.GetConnection(), (char*)&packettype, sizeof(Packet), NULL);
-	send(*m_client.GetConnection(), (char*)&msg_size, sizeof(int), NULL);
-	send(*m_client.GetConnection(), command.c_str(), msg_size, NULL);
+	GetDlgItem(IDC_MAIN_LOG_IN_BUTTON)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_MAIN_REGISTRATION_BUTTON)->ShowWindow(SW_HIDE);
+
+	GetDlgItem(IDC_AUTH_BACK_BUTTON)->ShowWindow(SW_SHOW);
+	GetDlgItem(IDC_LOGIN_EDIT)->ShowWindow(SW_SHOW);
+	GetDlgItem(IDC_PASSWORD_EDIT)->ShowWindow(SW_SHOW);
+	GetDlgItem(IDC_PASSWORD_REPEAT_EDIT)->ShowWindow(SW_SHOW);
+	GetDlgItem(IDC_SIGN_UP_BUTTON)->ShowWindow(SW_SHOW);
+	GetDlgItem(IDC_NICKNAME_EDIT)->ShowWindow(SW_SHOW);
 }
 
-void AuthentificationDlg::LogIn()
+void AuthentificationDlg::OnButtonLogIn()
 {
-	Packet test_packet = P_Test;
-	send(*m_client.GetConnection(), (char*)&test_packet, sizeof(Packet), NULL);
-	std::string command = "login";
-	int msg_size = command.size();
-	Packet packettype = P_Message;
-	send(*m_client.GetConnection(), (char*)&packettype, sizeof(Packet), NULL);
-	send(*m_client.GetConnection(), (char*)&msg_size, sizeof(int), NULL);
-	send(*m_client.GetConnection(), command.c_str(), msg_size, NULL);
+	GetDlgItem(IDC_MAIN_LOG_IN_BUTTON)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_MAIN_REGISTRATION_BUTTON)->ShowWindow(SW_HIDE);
+
+	GetDlgItem(IDC_AUTH_BACK_BUTTON)->ShowWindow(SW_SHOW);
+	GetDlgItem(IDC_LOGIN_EDIT)->ShowWindow(SW_SHOW);
+	GetDlgItem(IDC_PASSWORD_EDIT)->ShowWindow(SW_SHOW);
+	GetDlgItem(IDC_LOG_IN_BUTTON)->ShowWindow(SW_SHOW);
+}
+
+void AuthentificationDlg::OnBackButton()
+{
+	GetDlgItem(IDC_LOGIN_EDIT)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_PASSWORD_EDIT)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_LOG_IN_BUTTON)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_NICKNAME_EDIT)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_SIGN_UP_BUTTON)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_AUTH_BACK_BUTTON)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_PASSWORD_REPEAT_EDIT)->ShowWindow(SW_HIDE);
+
+	GetDlgItem(IDC_MAIN_LOG_IN_BUTTON)->ShowWindow(SW_SHOW);
+	GetDlgItem(IDC_MAIN_REGISTRATION_BUTTON)->ShowWindow(SW_SHOW);
 }
 
 void AuthentificationDlg::OnPaint()
@@ -70,11 +92,11 @@ BOOL AuthentificationDlg::OnEraseBkgnd(CDC* pDC)
 {
 	CRect rect;
 	GetClientRect(&rect);
-	CBrush myBrush(RGB(61, 61, 61));    // dialog background color
+	CBrush myBrush(RGB(61, 61, 61));
 	CBrush* pOld = pDC->SelectObject(&myBrush);
 	BOOL bRes = pDC->PatBlt(0, 0, rect.Width(), rect.Height(), PATCOPY);
-	pDC->SelectObject(pOld);    // restore old brush
-	return bRes;                       // CDialog::OnEraseBkgnd(pDC);
+	pDC->SelectObject(pOld);
+	return bRes;
 }
 
 

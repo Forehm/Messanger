@@ -55,7 +55,7 @@ BOOL CMessangerClientApp::InitInstance()
 
 
 	
-	WSAData wsaData;
+	/*WSAData wsaData;
 	WORD DLLVersion = MAKEWORD(2, 1);
 	if (WSAStartup(DLLVersion, &wsaData) != 0) {
 		std::cout << "Error" << std::endl;
@@ -74,7 +74,7 @@ BOOL CMessangerClientApp::InitInstance()
 	
 	client.AddConnection(&connection);
 
-	std::thread receiverThread(ClientHandler, std::ref(client));
+	std::thread receiverThread(ClientHandler, std::ref(client));*/
 
 	AuthentificationDlg authentification_dlg(NULL, client);
 	int hr = authentification_dlg.DoModal();

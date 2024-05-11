@@ -19,8 +19,9 @@ protected:
 
 	virtual BOOL OnInitDialog();
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
-	afx_msg void SignUp();
-	afx_msg void LogIn();
+	afx_msg void OnButtonSignUp();
+	afx_msg void OnButtonLogIn();
+	afx_msg void OnBackButton();
 	afx_msg void OnPaint();
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 	void OnNcPaint()
